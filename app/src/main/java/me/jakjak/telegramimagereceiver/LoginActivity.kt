@@ -72,11 +72,20 @@ class LoginActivity : AppCompatActivity() {
             for (ps in photo.sizes) {
                 if (ps.type.equals("x")) {
                     // full size image!
-                    val fileId: Int = ps.photo.id
-                    remoteId = ps.photo.remote.id
-                    client.send(TdApi.DownloadFile(fileId, 32), {
-                        Log.d(TAG, "Sent download file!")
-                    })
+                    if (ps.photo.local.isDownloadingCompleted) {
+                        displayImage(ps.photo.local.path)
+                    }
+                    else if (ps.photo.local.isDownloadingActive) {
+                        // do nothing
+                    }
+                    else {
+                        val fileId: Int = ps.photo.id
+                        remoteId = ps.photo.remote.id
+                        client.send(TdApi.DownloadFile(fileId, 32), {
+                            Log.d(TAG, "Sent download file!")
+                        })
+                    }
+                    break
                 }
             }
             photo.sizes
