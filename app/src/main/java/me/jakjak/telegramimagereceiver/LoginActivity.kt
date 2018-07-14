@@ -12,9 +12,9 @@ import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_main.*
 
 
-class MainActivity : AppCompatActivity() {
+class LoginActivity : AppCompatActivity() {
 
-    val TAG: String = "MainActivity"
+    val TAG: String = "LoginActivity"
 
     lateinit var client: Client
 
