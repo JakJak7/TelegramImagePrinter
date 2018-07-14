@@ -2,27 +2,39 @@ package me.jakjak.telegramimagereceiver
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
+import android.util.Log
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
+import android.widget.TextView
+import kotlinx.android.synthetic.main.activity_main.*
+
 
 class MainActivity : AppCompatActivity() {
+
+    val TAG: String = "MainActivity"
+
+    lateinit var client: Client
+
+    val secretEncryptionKey: String = "***REMOVED***"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        client = Client.create({
+            Log.d(TAG, "Got update!")
+        }, {
+            Log.e(TAG, "Update exception!")
+        }, {
+            Log.e(TAG, "Default exception!")
+        })
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        val client: Client = Client.create({
-            Toast.makeText(this, "got update!", Toast.LENGTH_SHORT).show()
-        }, {
-            Toast.makeText(this, "update exception!", Toast.LENGTH_SHORT).show()
-        }, {
-            Toast.makeText(this, "default exception!", Toast.LENGTH_SHORT).show()
-        })
+    override fun onStart() {
+        super.onStart()
 
         client.send(TdApi.SetTdlibParameters(TdApi.TdlibParameters(
                 false,
@@ -41,9 +53,30 @@ class MainActivity : AppCompatActivity() {
                 true, // turn off storage optimizer if weird behavior
                 false
         )), {
-            Toast.makeText(this, "got update!", Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Set TDLib parameters")
         }, {
-            Toast.makeText(this, "update exception!", Toast.LENGTH_SHORT).show()
+            Log.e(TAG, "Set TDLib parameters failed")
+        })
+
+        client.send(TdApi.CheckDatabaseEncryptionKey(secretEncryptionKey.toByteArray()), {
+            Log.d(TAG, "Set DatabaseEncryptionKey")
+        }, {
+            Log.e(TAG, "Set DatabaseEncryptionKey failed")
+        })
+
+        client.send(TdApi.SetAuthenticationPhoneNumber("***REMOVED***", false, false), {
+            Log.d(TAG, "Set PhoneNumber")
+        }, {
+            Log.e(TAG, "Set PhoneNumber failed")
+        })
+    }
+
+    fun submitCode(view: View) {
+        val code: String = codeField?.text.toString()
+        client.send(TdApi.CheckAuthenticationCode(code,"",""), {
+            Log.d(TAG, "Set auth code")
+        }, {
+            Log.e(TAG, "Set auth code failed")
         })
     }
 }
