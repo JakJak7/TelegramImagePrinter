@@ -1,5 +1,7 @@
 package me.jakjak.telegramimagereceiver
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -39,6 +41,7 @@ class LoginActivity : AppCompatActivity() {
                         remoteId = null
                         val path = it.file.local.path
 
+                        displayImage(path)
                         // send intent to print app!
                     }
                 }
@@ -47,6 +50,19 @@ class LoginActivity : AppCompatActivity() {
             Log.e(TAG, "Update exception!")
         }, {
             Log.e(TAG, "Default exception!")
+        })
+    }
+
+    private fun displayImage(path: String?) {
+        this.runOnUiThread({
+            var bmp = BitmapFactory.decodeFile(path)
+            val factor = 1080.0 / bmp.width
+            bmp = android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * factor).toInt(), (bmp.height * factor).toInt(), false)
+            try {
+                image.setImageBitmap(bmp)
+            } catch (e: Exception) {
+                Log.e(TAG, e.message)
+            }
         })
     }
 
