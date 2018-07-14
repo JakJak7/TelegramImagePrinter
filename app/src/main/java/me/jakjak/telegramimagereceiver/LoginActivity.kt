@@ -4,11 +4,8 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
-import android.widget.TextView
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -20,12 +17,32 @@ class LoginActivity : AppCompatActivity() {
 
     val secretEncryptionKey: String = "***REMOVED***"
 
+    var remoteId: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val botId: Int = ***REMOVED***
+
         client = Client.create({
             Log.d(TAG, "Got update!")
+            if (it is TdApi.UpdateNewMessage) {
+                if (it.message.senderUserId == botId) {
+                    Log.d(TAG, "got bot message!")
+                    handleMessageFromBot(it)
+                }
+            }
+            else if (it is TdApi.UpdateFile) {
+                if (!it.file.local.isDownloadingActive && it.file.local.isDownloadingCompleted) {
+                    if (it.file.remote.id.equals(remoteId)) {
+                        remoteId = null
+                        val path = it.file.local.path
+
+                        // send intent to print app!
+                    }
+                }
+            }
         }, {
             Log.e(TAG, "Update exception!")
         }, {
@@ -33,9 +50,32 @@ class LoginActivity : AppCompatActivity() {
         })
     }
 
+    private fun handleMessageFromBot(update: TdApi.UpdateNewMessage) {
+        if (update.message.content is TdApi.MessagePhoto) {
+            val photo = (update.message.content as TdApi.MessagePhoto).photo as TdApi.Photo
+            for (ps in photo.sizes) {
+                if (ps.type.equals("x")) {
+                    // full size image!
+                    val fileId: Int = ps.photo.id
+                    remoteId = ps.photo.remote.id
+                    client.send(TdApi.DownloadFile(fileId, 32), {
+                        Log.d(TAG, "Sent download file!")
+                    })
+                }
+            }
+            photo.sizes
+        } else if (update.message.content is TdApi.MessageSticker) {
+            // ??
+        }
+    }
+
     override fun onStart() {
         super.onStart()
 
+        val appHash = "***REMOVED***"
+        val appId = ***REMOVED***
+        val device = "Huawei P8"
+        val androidVersion = "6.0"
         client.send(TdApi.SetTdlibParameters(TdApi.TdlibParameters(
                 false,
                 getApplicationContext().getFilesDir().getAbsolutePath() + "/",
@@ -44,11 +84,11 @@ class LoginActivity : AppCompatActivity() {
                 true,
                 true,
                 false,
-                ***REMOVED***,
-                "***REMOVED***",
+                appId,
+                appHash,
                 "EN-en",
-                "Huawei P8",
-                "6.0",
+                device,
+                androidVersion,
                 "1.0",
                 true, // turn off storage optimizer if weird behavior
                 false
