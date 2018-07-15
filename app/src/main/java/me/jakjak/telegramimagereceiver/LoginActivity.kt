@@ -5,14 +5,12 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
-import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_login.*
 import me.jakjak.telegramimagereceiver.TelegramClient.Companion.client
 import org.drinkless.td.libcore.telegram.TdApi
 
 
 class LoginActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler {
-
     val TAG: String = "LoginActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,10 +48,10 @@ class LoginActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler
                 false,
                 Constants.appId,
                 Constants.appHash,
-                "EN-en",
+                Constants.languageCode,
                 Constants.device,
                 Constants.androidVersion,
-                "1.0",
+                Constants.version,
                 true, // turn off storage optimizer if weird behavior
                 false
         )), {
@@ -68,7 +66,7 @@ class LoginActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler
             Log.e(TAG, "Set DatabaseEncryptionKey failed")
         })
 
-        client.send(TdApi.SetAuthenticationPhoneNumber("***REMOVED***", false, false), {
+        client.send(TdApi.SetAuthenticationPhoneNumber(Constants.phoneNumber, false, false), {
             Log.d(TAG, "Set PhoneNumber")
         }, {
             Log.e(TAG, "Set PhoneNumber failed")

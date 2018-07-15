@@ -14,5 +14,7 @@ class Constants {
         val screenWidth = 1080.0
 
         val phoneNumber = "***REMOVED***"
+        val languageCode = "EN-en"
+        val version = "1.0"
     }
 }

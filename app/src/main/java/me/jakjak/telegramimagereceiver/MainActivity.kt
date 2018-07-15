@@ -1,12 +1,11 @@
 package me.jakjak.telegramimagereceiver
 
 import android.graphics.BitmapFactory
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
-import me.jakjak.telegramimagereceiver.TelegramClient.Companion.client
 
 class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler {
     val TAG: String = "MainActivity"

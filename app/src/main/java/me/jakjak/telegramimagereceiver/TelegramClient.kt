@@ -3,8 +3,6 @@ package me.jakjak.telegramimagereceiver
 import android.util.Log
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
-import java.util.*
-import kotlin.collections.ArrayList
 
 class TelegramClient {
 
