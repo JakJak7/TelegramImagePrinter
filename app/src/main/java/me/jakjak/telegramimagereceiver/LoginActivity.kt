@@ -1,14 +1,14 @@
 package me.jakjak.telegramimagereceiver
 
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
+import com.google.firebase.iid.FirebaseInstanceId
+import kotlinx.android.synthetic.main.activity_main.*
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
-import kotlinx.android.synthetic.main.activity_main.*
 
 
 class LoginActivity : AppCompatActivity() {
@@ -21,10 +21,23 @@ class LoginActivity : AppCompatActivity() {
 
     var remoteId: String? = null
 
+    var ready = false
+    lateinit var token: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener { instanceIdResult ->
+            val deviceToken = instanceIdResult.token
+            token = instanceIdResult.token
+            Log.d("Firebase", "token "+ deviceToken)
+        }
+
+        startClient()
+    }
+
+    private fun startClient() {
         val botId: Int = ***REMOVED***
 
         client = Client.create({
@@ -34,8 +47,7 @@ class LoginActivity : AppCompatActivity() {
                     Log.d(TAG, "got bot message!")
                     handleMessageFromBot(it)
                 }
-            }
-            else if (it is TdApi.UpdateFile) {
+            } else if (it is TdApi.UpdateFile) {
                 if (!it.file.local.isDownloadingActive && it.file.local.isDownloadingCompleted) {
                     if (it.file.remote.id.equals(remoteId)) {
                         remoteId = null
@@ -45,6 +57,12 @@ class LoginActivity : AppCompatActivity() {
                         // send intent to print app!
                     }
                 }
+            } else if (it is TdApi.UpdateConnectionState && it.state is TdApi.ConnectionStateReady) {
+                client.send(TdApi.RegisterDevice(TdApi.DeviceTokenGoogleCloudMessaging(token), IntArray(0)), {
+                    Log.d(TAG, "Register device!")
+                }, {
+                    Log.e(TAG, "Register device failed!")
+                })
             }
         }, {
             Log.e(TAG, "Update exception!")
@@ -134,6 +152,8 @@ class LoginActivity : AppCompatActivity() {
         }, {
             Log.e(TAG, "Set PhoneNumber failed")
         })
+
+        //client.send(TdApi.DeviceTokenGoogleCloudMessaging())
     }
 
     fun submitCode(view: View) {
