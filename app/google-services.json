@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "24716451818",
+    "firebase_url": "https://telegramprint.firebaseio.com",
+    "project_id": "telegramprint",
+    "storage_bucket": "telegramprint.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:24716451818:android:679bcda435f1a0f5",
+        "android_client_info": {
+          "package_name": "me.jakjak.telegramimagereceiver"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "24716451818-1qfao286e53v2og4qqtu6omdv8dlgdtr.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPQaK2XqAMzbivpfxKYlZ4tvfmaLStGGc"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
