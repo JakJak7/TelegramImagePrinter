@@ -35,8 +35,6 @@ class TelegramClient {
                     onFileDownloadComplete(it)
                 }
             } else if (it is TdApi.UpdateConnectionState && it.state is TdApi.ConnectionStateReady) {
-                // logged in and ready
-                //setToken()
                 onLoginSuccessful()
             }
         }, {
@@ -46,7 +44,7 @@ class TelegramClient {
         })
 
         private fun onLoginSuccessful() {
-            for (e: EventHandler in eventHandlers) {
+            for (e in eventHandlers) {
                 e.handleEvent(Event.LoggedIn, null)
             }
         }
@@ -55,11 +53,10 @@ class TelegramClient {
             val remoteId = it.file.remote.id
             if (pendingImages.contains(remoteId)) {
                 pendingImages.remove(remoteId)
-                val path = it.file.local.path
-
-                onImageReady(path)
-                // send intent to print app!
             }
+            val path = it.file.local.path
+
+            onImageReady(path)
         }
 
         fun setToken(token: String) {
@@ -98,7 +95,9 @@ class TelegramClient {
         }
 
         private fun onImageReady(path: String) {
-
+            for (e in eventHandlers) {
+                e.handleEvent(Event.ImageReady, path)
+            }
         }
 
         interface EventHandler {
