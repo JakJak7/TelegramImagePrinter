@@ -17,8 +17,6 @@ class LoginActivity : AppCompatActivity() {
 
     lateinit var client: Client
 
-    val secretEncryptionKey: String = "***REMOVED***"
-
     var remoteId: String? = null
 
     var ready = false
@@ -38,12 +36,10 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun startClient() {
-        val botId: Int = ***REMOVED***
-
         client = Client.create({
             Log.d(TAG, "Got update!")
             if (it is TdApi.UpdateNewMessage) {
-                if (it.message.senderUserId == botId) {
+                if (it.message.senderUserId == Constants.botId) {
                     Log.d(TAG, "got bot message!")
                     handleMessageFromBot(it)
                 }
@@ -115,10 +111,6 @@ class LoginActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        val appHash = "***REMOVED***"
-        val appId = ***REMOVED***
-        val device = "Huawei P8"
-        val androidVersion = "6.0"
         client.send(TdApi.SetTdlibParameters(TdApi.TdlibParameters(
                 false,
                 getApplicationContext().getFilesDir().getAbsolutePath() + "/",
@@ -127,11 +119,11 @@ class LoginActivity : AppCompatActivity() {
                 true,
                 true,
                 false,
-                appId,
-                appHash,
+                Constants.appId,
+                Constants.appHash,
                 "EN-en",
-                device,
-                androidVersion,
+                Constants.device,
+                Constants.androidVersion,
                 "1.0",
                 true, // turn off storage optimizer if weird behavior
                 false
@@ -141,7 +133,7 @@ class LoginActivity : AppCompatActivity() {
             Log.e(TAG, "Set TDLib parameters failed")
         })
 
-        client.send(TdApi.CheckDatabaseEncryptionKey(secretEncryptionKey.toByteArray()), {
+        client.send(TdApi.CheckDatabaseEncryptionKey(Constants.secretEncryptionKey.toByteArray()), {
             Log.d(TAG, "Set DatabaseEncryptionKey")
         }, {
             Log.e(TAG, "Set DatabaseEncryptionKey failed")
@@ -152,8 +144,6 @@ class LoginActivity : AppCompatActivity() {
         }, {
             Log.e(TAG, "Set PhoneNumber failed")
         })
-
-        //client.send(TdApi.DeviceTokenGoogleCloudMessaging())
     }
 
     fun submitCode(view: View) {
