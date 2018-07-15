@@ -29,48 +29,11 @@ class LoginActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler
     override fun onStart() {
         super.onStart()
         TelegramClient.bindHandler(this)
-        onParametersNeeded()
     }
 
     override fun onStop() {
         TelegramClient.unbindHandler(this)
         super.onStop()
-    }
-
-    private fun onParametersNeeded() {
-        client.send(TdApi.SetTdlibParameters(TdApi.TdlibParameters(
-                false,
-                getApplicationContext().getFilesDir().getAbsolutePath() + "/",
-                getApplicationContext().getExternalFilesDir(null).getAbsolutePath() + "/",
-                true,
-                true,
-                true,
-                false,
-                Constants.appId,
-                Constants.appHash,
-                Constants.languageCode,
-                Constants.device,
-                Constants.androidVersion,
-                Constants.version,
-                true, // turn off storage optimizer if weird behavior
-                false
-        )), {
-            Log.d(TAG, "Set TDLib parameters")
-        }, {
-            Log.e(TAG, "Set TDLib parameters failed")
-        })
-
-        client.send(TdApi.CheckDatabaseEncryptionKey(Constants.secretEncryptionKey.toByteArray()), {
-            Log.d(TAG, "Set DatabaseEncryptionKey")
-        }, {
-            Log.e(TAG, "Set DatabaseEncryptionKey failed")
-        })
-
-        client.send(TdApi.SetAuthenticationPhoneNumber(Constants.phoneNumber, false, false), {
-            Log.d(TAG, "Set PhoneNumber")
-        }, {
-            Log.e(TAG, "Set PhoneNumber failed")
-        })
     }
 
     fun submitCode(view: View) {

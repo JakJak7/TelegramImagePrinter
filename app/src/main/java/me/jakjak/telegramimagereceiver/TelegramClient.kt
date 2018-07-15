@@ -1,5 +1,6 @@
 package me.jakjak.telegramimagereceiver
 
+import android.support.v4.content.ContextCompat
 import android.util.Log
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
@@ -22,7 +23,7 @@ class TelegramClient {
         val pendingImages = ArrayList<String>()
 
         val client = Client.create({
-            Log.d(TAG, "Got update!")
+            Log.d(TAG, "Got update! " + it.javaClass.simpleName)
             if (it is TdApi.UpdateNewMessage) {
                 if (it.message.senderUserId == Constants.botId) {
                     Log.d(TAG, "got bot message!")
@@ -32,7 +33,9 @@ class TelegramClient {
                 if (!it.file.local.isDownloadingActive && it.file.local.isDownloadingCompleted) {
                     onFileDownloadComplete(it)
                 }
-            } else if (it is TdApi.UpdateConnectionState && it.state is TdApi.ConnectionStateReady) {
+            } else if (it is TdApi.UpdateAuthorizationState && it.authorizationState is TdApi.AuthorizationStateWaitCode) {
+                needLogin()
+            } else if (it is TdApi.UpdateAuthorizationState && it.authorizationState is TdApi.AuthorizationStateReady) {
                 onLoginSuccessful()
             }
         }, {
@@ -40,6 +43,12 @@ class TelegramClient {
         }, {
             Log.e(TAG, "Default exception!")
         })
+
+        private fun needLogin() {
+            for (e in eventHandlers) {
+                e.handleEvent(Event.NeedAuth, null)
+            }
+        }
 
         private fun onLoginSuccessful() {
             for (e in eventHandlers) {
@@ -103,6 +112,7 @@ class TelegramClient {
         }
 
         enum class Event {
+            NeedAuth,
             LoggedIn,
             ImageReady
         }
