@@ -137,8 +137,9 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
     }
 
     private fun createAction(): NotificationCompat.Action {
-        var intent: Intent = Intent("stop")
-        val pendingIntent: PendingIntent = PendingIntent.getBroadcast(this, 1338, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val intentAction = Intent(this, ActionReceiver::class.java)
+        intentAction.putExtra(ActionReceiver.ACTION, ActionReceiver.ACTION_STOP)
+        val pendingIntent: PendingIntent = PendingIntent.getBroadcast(this, 1338, intentAction, PendingIntent.FLAG_UPDATE_CURRENT)
         val action: NotificationCompat.Action = NotificationCompat.Action.Builder(android.R.drawable.arrow_down_float, "stop", pendingIntent).build()
         return action
     }
