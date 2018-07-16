@@ -16,5 +16,7 @@ class Constants {
         val phoneNumber = "***REMOVED***"
         val languageCode = "EN-en"
         val version = "1.0"
+
+        val channelName = "serviceKeepAlive"
     }
 }

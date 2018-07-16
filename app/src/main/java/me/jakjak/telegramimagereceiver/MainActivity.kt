@@ -1,11 +1,18 @@
 package me.jakjak.telegramimagereceiver
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.support.v4.app.NotificationCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.View
 import com.google.firebase.iid.FirebaseInstanceId
 import org.drinkless.td.libcore.telegram.TdApi
+
 
 class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler {
     val TAG: String = "MainActivity"
@@ -38,7 +45,10 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
             TelegramClient.setToken(deviceToken)
             Log.d("Firebase", "token " + deviceToken)
         }
+    }
 
+    fun startService(view: View) {
+        createChannel()
         startService(Intent(this, UpdateService::class.java))
     }
 
@@ -76,5 +86,40 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
         }, {
             Log.e(TelegramClient.TAG, "Set PhoneNumber failed")
         })
+    }
+
+    fun createChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Sets an ID for the notification, so it can be updated.
+            var notifyID = 1
+            var CHANNEL_ID = "my_channel_01"// The id of the channel.
+            var name = Constants.channelName// The user-visible name of the channel.
+            var importance = NotificationManager.IMPORTANCE_HIGH
+            var mChannel = NotificationChannel(CHANNEL_ID, name, importance)
+            // Create a notification and set the notification channel.
+
+            val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            mNotificationManager.createNotificationChannel(mChannel)
+
+            val b = NotificationCompat.Builder(this)
+            b.setOngoing(true)
+                    .setContentTitle("title")
+                    .setContentText("content")
+                    .setSmallIcon(android.R.drawable.stat_sys_download)
+                    .setTicker("ticker?")
+                    .setChannelId(CHANNEL_ID)
+
+            val notification = b.build()
+            notification.flags = notification.flags or Notification.FLAG_NO_CLEAR;
+
+            mNotificationManager.notify(1337, notification)
+        }
+    }
+
+    private fun showNotification(notification: Notification) {
+        notification.flags = notification.flags or Notification.FLAG_NO_CLEAR;
+
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        manager.notify(1337, notification)
     }
 }

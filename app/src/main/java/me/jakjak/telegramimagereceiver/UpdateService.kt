@@ -1,5 +1,6 @@
 package me.jakjak.telegramimagereceiver
 
+import android.app.Notification
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -8,6 +9,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.support.v4.app.NotificationCompat
 
 class UpdateService : Service(), TelegramClient.Companion.EventHandler {
 
@@ -25,6 +27,10 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
         // TODO unbind somehow?
         //TelegramClient.unbindHandler(this)
         return super.onStartCommand(intent, flags, startId)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
     }
 
     override fun handleEvent(e: TelegramClient.Companion.Event, s: String?) {
