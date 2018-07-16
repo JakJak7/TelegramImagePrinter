@@ -18,5 +18,6 @@ class Constants {
         val version = "1.0"
 
         val channelName = "serviceKeepAlive"
+        val channelId = "my_channel_01"
     }
 }
