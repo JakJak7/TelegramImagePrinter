@@ -124,8 +124,8 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
 
         val b = NotificationCompat.Builder(this)
         b.setOngoing(true)
-                .setContentTitle("title")
-                .setContentText("content")
+                .setContentTitle("Telegram image service")
+                .setContentText("Running...")
                 .setSmallIcon(android.R.drawable.stat_sys_download)
                 .setTicker("ticker?")
                 .setChannelId(CHANNEL_ID)
