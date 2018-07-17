@@ -19,5 +19,7 @@ class Constants {
 
         val channelName = "serviceKeepAlive"
         val channelId = "my_channel_01"
+
+        val foregroundServiceId = 1339
     }
 }

@@ -1,13 +1,10 @@
 package me.jakjak.telegramimagereceiver
 
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.NotificationCompat
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
@@ -27,6 +24,28 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
         }
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener { instanceIdResult ->
+            val deviceToken = instanceIdResult.token
+            TelegramClient.setToken(deviceToken)
+            Log.d("Firebase", "token " + deviceToken)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            createNotificationChannel()
+        }
+
+        if (!UpdateService.isAlive) {
+            startButton.isEnabled = true
+        }
+        else {
+            stopButton.isEnabled = true
+        }
+    }
+
     override fun onStart() {
         super.onStart()
         TelegramClient.bindHandler(this)
@@ -38,34 +57,19 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
         super.onStop()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener { instanceIdResult ->
-            val deviceToken = instanceIdResult.token
-            TelegramClient.setToken(deviceToken)
-            Log.d("Firebase", "token " + deviceToken)
-        }
-
-        if (!UpdateService.isAlive) {
-            startButton.isEnabled = true
-        }
-        else {
-            stopButton.isEnabled = true
-        }
-    }
-
     fun startService(view: View) {
-        createPersistentNotification()
-        startService(Intent(this, UpdateService::class.java))
+        val intent = Intent(this, UpdateService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(intent)
+        } else {
+            startService(intent)
+        }
+
         startButton.isEnabled = false
         stopButton.isEnabled = true
     }
 
     fun stopService(view: View) {
-        val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        mNotificationManager.cancel(1337)
         stopService(Intent(this, UpdateService::class.java))
         startButton.isEnabled = true
         stopButton.isEnabled = false
@@ -107,54 +111,17 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
         })
     }
 
-    fun createPersistentNotification() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val pair = createNotificationChannel()
-            var CHANNEL_ID = pair.first// The id of the channel.
-            val mNotificationManager = pair.second
-
-            val notification = createNotification(CHANNEL_ID)
-
-            mNotificationManager.notify(1337, notification)
-        }
-    }
-
-    private fun createNotification(CHANNEL_ID: String): Notification {
-        val action: NotificationCompat.Action = createAction()
-
-        val b = NotificationCompat.Builder(this)
-        b.setOngoing(true)
-                .setContentTitle("Telegram image service")
-                .setContentText("Running...")
-                .setSmallIcon(android.R.drawable.stat_sys_download)
-                .setTicker("ticker?")
-                .setChannelId(CHANNEL_ID)
-                .addAction(action)
-
-        val notification = b.build()
-        notification.flags = notification.flags or Notification.FLAG_NO_CLEAR;
-        return notification
-    }
-
-    private fun createAction(): NotificationCompat.Action {
-        val intentAction = Intent(this, ActionReceiver::class.java)
-        intentAction.putExtra(ActionReceiver.ACTION, ActionReceiver.ACTION_STOP)
-        val pendingIntent: PendingIntent = PendingIntent.getBroadcast(this, 1338, intentAction, PendingIntent.FLAG_UPDATE_CURRENT)
-        val action: NotificationCompat.Action = NotificationCompat.Action.Builder(android.R.drawable.arrow_down_float, "stop", pendingIntent).build()
-        return action
-    }
-
     private fun createNotificationChannel(): Pair<String, NotificationManager> {
-            // Sets an ID for the notification, so it can be updated.
-            var notifyID = 1
-            var CHANNEL_ID = Constants.channelId// The id of the channel.
-            var name = Constants.channelName// The user-visible name of the channel.
-            var importance = NotificationManager.IMPORTANCE_HIGH
-            var mChannel = NotificationChannel(CHANNEL_ID, name, importance)
-            // Create a notification and set the notification channel.
+        // Sets an ID for the notification, so it can be updated.
+        var notifyID = 1
+        var CHANNEL_ID = Constants.channelId// The id of the channel.
+        var name = Constants.channelName// The user-visible name of the channel.
+        var importance = NotificationManager.IMPORTANCE_HIGH
+        var mChannel = NotificationChannel(CHANNEL_ID, name, importance)
+        // Create a notification and set the notification channel.
 
-            val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            mNotificationManager.createNotificationChannel(mChannel)
-            return Pair(CHANNEL_ID, mNotificationManager)
+        val mNotificationManager = getSystemService(AppCompatActivity.NOTIFICATION_SERVICE) as NotificationManager
+        mNotificationManager.createNotificationChannel(mChannel)
+        return Pair(CHANNEL_ID, mNotificationManager)
     }
 }
