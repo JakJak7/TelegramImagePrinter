@@ -59,8 +59,10 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
 
         val converter: ByteConverterInterface = ZebraByteConverter()
         val bytes = converter.convert(bmp)
+        val newline = converter.newline()
 
         printer.print(bytes)
+        printer.print(newline)
 
         doVibrate(100)
     }

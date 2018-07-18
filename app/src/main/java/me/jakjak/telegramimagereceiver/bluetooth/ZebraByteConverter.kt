@@ -6,9 +6,16 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 class ZebraByteConverter : ByteConverterInterface {
+    override fun newline(): ByteArray {
+        val byteList = ArrayList<Byte>()
+        val text = "\r\n"
+        addStringBytes(byteList, text)
+        return byteList.toByteArray()
+    }
+
     override fun test(): ByteArray {
         val byteList = ArrayList<Byte>()
-        var text = "! 0 200 200 25 1\r\n" +
+        val text = "! 0 200 200 25 1\r\n" +
                 "TEXT 7 0 0 0 Test string\r\n" +
                 "PRINT\r\n"
         addStringBytes(byteList, text)

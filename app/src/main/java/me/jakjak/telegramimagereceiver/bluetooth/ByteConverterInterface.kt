@@ -5,4 +5,5 @@ import android.graphics.Bitmap
 interface ByteConverterInterface {
     fun convert(bitmap: Bitmap): ByteArray
     fun test(): ByteArray
+    fun newline(): ByteArray
 }
