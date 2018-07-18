@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
     val TAG: String = "MainActivity"
 
     override fun handleEvent(e: TelegramClient.Companion.Event, s: String?) {
-        if (e == TelegramClient.Companion.Event.NeedAuth) {
+        if (e == TelegramClient.Companion.Event.NeedPhone || e == TelegramClient.Companion.Event.NeedAuth) {
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
             finish()
@@ -103,11 +103,14 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
             Log.e(TelegramClient.TAG, "Set DatabaseEncryptionKey failed")
         })
 
-        TelegramClient.client.send(TdApi.SetAuthenticationPhoneNumber(BuildConfig.phoneNumber, false, false), {
-            Log.d(TelegramClient.TAG, "Set PhoneNumber")
-        }, {
-            Log.e(TelegramClient.TAG, "Set PhoneNumber failed")
-        })
+        val phoneNumber = Preferences.getPreferences(this, Preferences.PHONE_NUMBER)
+        if (phoneNumber != null) {
+            TelegramClient.client.send(TdApi.SetAuthenticationPhoneNumber(phoneNumber, false, false), {
+                Log.d(TelegramClient.TAG, "Set PhoneNumber")
+            }, {
+                Log.e(TelegramClient.TAG, "Set PhoneNumber failed")
+            })
+        }
     }
 
     private fun createNotificationChannel() {

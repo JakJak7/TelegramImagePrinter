@@ -33,10 +33,16 @@ class TelegramClient {
                 if (!it.file.local.isDownloadingActive && it.file.local.isDownloadingCompleted) {
                     onFileDownloadComplete(it)
                 }
-            } else if (it is TdApi.UpdateAuthorizationState && it.authorizationState is TdApi.AuthorizationStateWaitCode) {
-                needLogin()
-            } else if (it is TdApi.UpdateAuthorizationState && it.authorizationState is TdApi.AuthorizationStateReady) {
-                onLoginSuccessful()
+            } else if (it is TdApi.UpdateAuthorizationState) {
+                if (it.authorizationState is TdApi.AuthorizationStateWaitPhoneNumber) {
+                    notifyListeners(Event.NeedPhone, null)
+                }
+                else if (it.authorizationState is TdApi.AuthorizationStateWaitCode) {
+                    notifyListeners(Event.NeedAuth, null)
+                }
+                else if (it.authorizationState is TdApi.AuthorizationStateReady) {
+                    notifyListeners(Event.LoggedIn, null)
+                }
             }
         }, {
             Log.e(TAG, "Update exception!")
@@ -44,15 +50,9 @@ class TelegramClient {
             Log.e(TAG, "Default exception!")
         })
 
-        private fun needLogin() {
-            for (e in eventHandlers) {
-                e.handleEvent(Event.NeedAuth, null)
-            }
-        }
-
-        private fun onLoginSuccessful() {
-            for (e in eventHandlers) {
-                e.handleEvent(Event.LoggedIn, null)
+        private fun notifyListeners(event: Event, s: String?) {
+            for (handler in eventHandlers) {
+                handler.handleEvent(event, s)
             }
         }
 
@@ -62,7 +62,7 @@ class TelegramClient {
                 pendingImages.remove(remoteId)
 
                 val path = it.file.local.path
-                onImageReady(path)
+                notifyListeners(Event.ImageReady, path)
             }
         }
 
@@ -81,7 +81,8 @@ class TelegramClient {
                     if (ps.type.equals("x")) {
                         // full size image!
                         if (ps.photo.local.isDownloadingCompleted) {
-                            onImageReady(ps.photo.local.path)
+                            val path = ps.photo.local.path
+                            notifyListeners(Event.ImageReady, path)
                         }
                         else if (ps.photo.local.isDownloadingActive) {
                             // do nothing
@@ -101,17 +102,12 @@ class TelegramClient {
             }
         }
 
-        private fun onImageReady(path: String) {
-            for (e in eventHandlers) {
-                e.handleEvent(Event.ImageReady, path)
-            }
-        }
-
         interface EventHandler {
             fun handleEvent(e: Event, s: String?)
         }
 
         enum class Event {
+            NeedPhone,
             NeedAuth,
             LoggedIn,
             ImageReady

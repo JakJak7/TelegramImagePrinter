@@ -8,17 +8,32 @@
     tools:context=".LoginActivity">
 
     <EditText
+        android:id="@+id/phoneNumberField"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="phone"
+        android:text="" />
+
+    <Button
+        android:id="@+id/submitPhoneNumberButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="submitPhoneNumber"
+        android:text="Submit phone" />
+
+    <EditText
         android:id="@+id/codeField"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:inputType="textPersonName"
+        android:inputType="number"
         android:text="" />
 
     <Button
-        android:id="@+id/submitButton"
+        android:id="@+id/submitCodeButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:onClick="submitCode"
-        android:text="submit" />
+        android:text="Submit code" />
 </LinearLayout>

@@ -22,7 +22,6 @@ android {
         buildConfigField("int", "botUserId", appProperties['botUserId'])
         buildConfigField("String", "secretEncryptionKey", appProperties['secretEncryptionKey'])
         buildConfigField("String", "printerMacAddress", appProperties['printerMacAddress'])
-        buildConfigField("String", "phoneNumber", appProperties['phoneNumber'])
     }
     buildTypes {
         release {
