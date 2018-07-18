@@ -25,7 +25,7 @@ class TelegramClient {
         val client = Client.create({
             Log.d(TAG, "Got update! " + it.javaClass.simpleName)
             if (it is TdApi.UpdateNewMessage) {
-                if (it.message.senderUserId == Constants.botId) {
+                if (it.message.senderUserId == BuildConfig.botUserId) {
                     Log.d(TAG, "got bot message!")
                     handleMessageFromBot(it)
                 }

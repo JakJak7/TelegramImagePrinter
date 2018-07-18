@@ -4,6 +4,10 @@ apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
 
+def appPropertiesFile = rootProject.file("app.properties")
+def appProperties = new Properties()
+appProperties.load(new FileInputStream(appPropertiesFile))
+
 android {
     compileSdkVersion 28
     defaultConfig {
@@ -13,6 +17,12 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        buildConfigField("int", "appId", appProperties['appId'])
+        buildConfigField("String", "appHash", appProperties['appHash'])
+        buildConfigField("int", "botUserId", appProperties['botUserId'])
+        buildConfigField("String", "secretEncryptionKey", appProperties['secretEncryptionKey'])
+        buildConfigField("String", "printerMacAddress", appProperties['printerMacAddress'])
+        buildConfigField("String", "phoneNumber", appProperties['phoneNumber'])
     }
     buildTypes {
         release {

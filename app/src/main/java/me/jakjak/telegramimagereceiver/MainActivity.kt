@@ -11,6 +11,7 @@ import android.view.View
 import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
 import org.drinkless.td.libcore.telegram.TdApi
+import java.util.*
 
 
 class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler {
@@ -34,9 +35,7 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
             Log.d("Firebase", "token " + deviceToken)
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            createNotificationChannel()
-        }
+        createNotificationChannel()
 
         if (!UpdateService.isAlive) {
             startButton.isEnabled = true
@@ -84,12 +83,12 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
                 true,
                 true,
                 false,
-                Constants.appId,
-                Constants.appHash,
-                Constants.languageCode,
-                Constants.device,
-                Constants.androidVersion,
-                Constants.version,
+                BuildConfig.appId,
+                BuildConfig.appHash,
+                Locale.getDefault().toString(),
+                Build.MODEL,
+                Build.VERSION.RELEASE,
+                BuildConfig.VERSION_NAME,
                 true, // turn off storage optimizer if weird behavior
                 false
         )), {
@@ -98,30 +97,30 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
             Log.e(TelegramClient.TAG, "Set TDLib parameters failed")
         })
 
-        TelegramClient.client.send(TdApi.CheckDatabaseEncryptionKey(Constants.secretEncryptionKey.toByteArray()), {
+        TelegramClient.client.send(TdApi.CheckDatabaseEncryptionKey(BuildConfig.secretEncryptionKey.toByteArray()), {
             Log.d(TelegramClient.TAG, "Set DatabaseEncryptionKey")
         }, {
             Log.e(TelegramClient.TAG, "Set DatabaseEncryptionKey failed")
         })
 
-        TelegramClient.client.send(TdApi.SetAuthenticationPhoneNumber(Constants.phoneNumber, false, false), {
+        TelegramClient.client.send(TdApi.SetAuthenticationPhoneNumber(BuildConfig.phoneNumber, false, false), {
             Log.d(TelegramClient.TAG, "Set PhoneNumber")
         }, {
             Log.e(TelegramClient.TAG, "Set PhoneNumber failed")
         })
     }
 
-    private fun createNotificationChannel(): Pair<String, NotificationManager> {
-        // Sets an ID for the notification, so it can be updated.
-        var notifyID = 1
-        var CHANNEL_ID = Constants.channelId// The id of the channel.
-        var name = Constants.channelName// The user-visible name of the channel.
-        var importance = NotificationManager.IMPORTANCE_HIGH
-        var mChannel = NotificationChannel(CHANNEL_ID, name, importance)
-        // Create a notification and set the notification channel.
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // Sets an ID for the notification, so it can be updated.
+            val CHANNEL_ID = Constants.channelId// The id of the channel.
+            val name = Constants.channelName// The user-visible name of the channel.
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val mChannel = NotificationChannel(CHANNEL_ID, name, importance)
+            // Create a notification and set the notification channel.
 
-        val mNotificationManager = getSystemService(AppCompatActivity.NOTIFICATION_SERVICE) as NotificationManager
-        mNotificationManager.createNotificationChannel(mChannel)
-        return Pair(CHANNEL_ID, mNotificationManager)
+            val mNotificationManager = getSystemService(AppCompatActivity.NOTIFICATION_SERVICE) as NotificationManager
+            mNotificationManager.createNotificationChannel(mChannel)
+        }
     }
 }

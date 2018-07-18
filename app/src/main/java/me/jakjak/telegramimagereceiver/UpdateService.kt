@@ -17,7 +17,7 @@ import me.jakjak.telegramimagereceiver.bluetooth.ZebraByteConverter
 
 class UpdateService : Service(), TelegramClient.Companion.EventHandler {
 
-    val printer: Printer = Printer(this, "***REMOVED***")
+    val printer: Printer = Printer(this, BuildConfig.printerMacAddress)
 
     companion object {
         var isAlive = false
@@ -55,11 +55,13 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
     private fun handleImage(path: String) {
         var bmp = BitmapFactory.decodeFile(path)
         val scaleFactor: Double
+
+        // assumes square print
         if (bmp.width >= bmp.height) {
-            scaleFactor= Constants.screenWidth / bmp.width
+            scaleFactor= Constants.printWidth / bmp.width
         }
         else {
-            scaleFactor = Constants.screenWidth / bmp.height
+            scaleFactor = Constants.printWidth / bmp.height
         }
         bmp = android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * scaleFactor).toInt(), (bmp.height * scaleFactor).toInt(), false)
 
