@@ -22,8 +22,6 @@ class Printer(val context: Context, val MAC: String) {
             return false
         }*/
 
-        val uuids = device.uuids
-
         socket = device.createRfcommSocketToServiceRecord(uuid)
         socket.connect()
 
@@ -34,5 +32,9 @@ class Printer(val context: Context, val MAC: String) {
         val outputStream = socket.outputStream
         outputStream.write(bytes)
         outputStream.flush()
+    }
+
+    fun closeConnection() {
+        socket.close()
     }
 }

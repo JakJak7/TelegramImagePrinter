@@ -41,6 +41,7 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
 
     override fun onDestroy() {
         isAlive = false
+        printer.closeConnection()
         TelegramClient.unbindHandler(this)
         super.onDestroy()
     }
@@ -57,8 +58,7 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
         bmp = android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * factor).toInt(), (bmp.height * factor).toInt(), false)
 
         val converter: ByteConverterInterface = ZebraByteConverter()
-        var bytes = converter.convert(bmp)
-        bytes = converter.test()
+        val bytes = converter.convert(bmp)
 
         printer.print(bytes)
 

@@ -60,10 +60,10 @@ class TelegramClient {
             val remoteId = it.file.remote.id
             if (pendingImages.contains(remoteId)) {
                 pendingImages.remove(remoteId)
+                
+                val path = it.file.local.path
+                onImageReady(path)
             }
-            val path = it.file.local.path
-
-            onImageReady(path)
         }
 
         fun setToken(token: String) {

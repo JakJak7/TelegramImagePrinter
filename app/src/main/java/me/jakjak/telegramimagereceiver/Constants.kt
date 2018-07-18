@@ -11,7 +11,7 @@ class Constants {
         val appId = ***REMOVED***
         val device = "Huawei P8"
         val androidVersion = "6.0"
-        val screenWidth = 10.0
+        val screenWidth = 384.0
 
         val phoneNumber = "***REMOVED***"
         val languageCode = "EN-en"
