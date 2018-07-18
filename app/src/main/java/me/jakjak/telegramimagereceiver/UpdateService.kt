@@ -54,8 +54,14 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
 
     private fun handleImage(path: String) {
         var bmp = BitmapFactory.decodeFile(path)
-        val factor = Constants.screenWidth / bmp.width
-        bmp = android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * factor).toInt(), (bmp.height * factor).toInt(), false)
+        val scaleFactor: Double
+        if (bmp.width >= bmp.height) {
+            scaleFactor= Constants.screenWidth / bmp.width
+        }
+        else {
+            scaleFactor = Constants.screenWidth / bmp.height
+        }
+        bmp = android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * scaleFactor).toInt(), (bmp.height * scaleFactor).toInt(), false)
 
         val converter: ByteConverterInterface = ZebraByteConverter()
         val bytes = converter.convert(bmp)
