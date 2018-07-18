@@ -11,8 +11,13 @@ import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.support.v4.app.NotificationCompat
+import me.jakjak.telegramimagereceiver.bluetooth.ByteConverterInterface
+import me.jakjak.telegramimagereceiver.bluetooth.Printer
+import me.jakjak.telegramimagereceiver.bluetooth.ZebraByteConverter
 
 class UpdateService : Service(), TelegramClient.Companion.EventHandler {
+
+    val printer: Printer = Printer(this, "***REMOVED***")
 
     companion object {
         var isAlive = false
@@ -28,6 +33,8 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
 
         val notification = createNotification(Constants.channelId)
         startForeground(Constants.foregroundServiceId, notification)
+
+        printer.openConnection()
 
         return super.onStartCommand(intent, flags, startId)
     }
@@ -49,8 +56,17 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
         val factor = Constants.screenWidth / bmp.width
         bmp = android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * factor).toInt(), (bmp.height * factor).toInt(), false)
 
+        val converter: ByteConverterInterface = ZebraByteConverter()
+        var bytes = converter.convert(bmp)
+        bytes = converter.test()
+
+        printer.print(bytes)
+
+        doVibrate(100)
+    }
+
+    private fun doVibrate(vibtime: Long) {
         val v = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        val vibtime: Long = 100
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             v.vibrate(VibrationEffect.createOneShot(vibtime, VibrationEffect.DEFAULT_AMPLITUDE))
         } else {

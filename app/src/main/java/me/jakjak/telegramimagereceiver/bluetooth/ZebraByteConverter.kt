@@ -5,10 +5,19 @@ import android.graphics.Color
 import java.nio.charset.StandardCharsets
 
 class ZebraByteConverter : ByteConverterInterface {
+    override fun test(): ByteArray {
+        val byteList = ArrayList<Byte>()
+        val text = "! 0 200 200 25 1\r\n" +
+                "TEXT 7 0 0 0 Test string\r\n" +
+                "PRINT\r\n"
+        addStringBytes(byteList, text)
+        return byteList.toByteArray()
+    }
+
     override fun convert(bitmap: Bitmap): ByteArray {
-        var byteList = ArrayList<Byte>()
+        val byteList = ArrayList<Byte>()
         val header = "! 0 200 200 " + bitmap.height + " 1\r\n"
-        byteList.addAll(header.toByteArray(StandardCharsets.US_ASCII).asList())
+        addStringBytes(byteList, header)
 
         var loopWidth = 8 - (bitmap.width % 8)
 
@@ -19,8 +28,8 @@ class ZebraByteConverter : ByteConverterInterface {
             loopWidth += bitmap.width
         }
 
-        var data = String.format("EG %d %d %d %d ", loopWidth / 8, bitmap.height, 0, 0, 1)
-        byteList.addAll(data.toByteArray(StandardCharsets.US_ASCII).asList())
+        val data = String.format("EG %d %d %d %d ", loopWidth / 8, bitmap.height, 0, 0)
+        addStringBytes(byteList, data)
 
         for (y in 0..bitmap.height - 1) {
             var bit = 128
@@ -30,7 +39,7 @@ class ZebraByteConverter : ByteConverterInterface {
                 var intensity: Int
 
                 if (x < bitmap.width) {
-                    var pixel = bitmap.getPixel(x,y)
+                    val pixel = bitmap.getPixel(x,y)
                     intensity = 255 - ((Color.red(pixel) + Color.green(pixel) + Color.blue(pixel)) / 3)
                 }
                 else {
@@ -45,14 +54,18 @@ class ZebraByteConverter : ByteConverterInterface {
 
                 if (bit == 0) {
                     val hexString = java.lang.Integer.toHexString(currentValue)
-                    byteList.addAll(hexString.toByteArray(StandardCharsets.US_ASCII).asList())
+                    addStringBytes(byteList, hexString)
                     bit = 128
                     currentValue = 0
                 }
             } // x
         } // y
 
-        byteList.addAll("PRINT\r\n".toByteArray(StandardCharsets.US_ASCII).asList())
+        addStringBytes(byteList, "PRINT\r\n")
         return byteList.toByteArray()
+    }
+
+    private fun addStringBytes(byteList: ArrayList<Byte>, hexString: String) {
+        byteList.addAll(hexString.toByteArray(StandardCharsets.UTF_16).asList())
     }
 }
