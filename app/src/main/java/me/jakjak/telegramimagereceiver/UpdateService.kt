@@ -11,9 +11,8 @@ import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.support.v4.app.NotificationCompat
-import me.jakjak.telegramimagereceiver.bluetooth.ByteConverterInterface
-import me.jakjak.telegramimagereceiver.bluetooth.Printer
-import me.jakjak.telegramimagereceiver.bluetooth.ZebraByteConverter
+import android.util.Log
+import me.jakjak.telegramimagereceiver.bluetooth.*
 
 class UpdateService : Service(), TelegramClient.Companion.EventHandler {
 
@@ -65,12 +64,21 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
         }
         bmp = android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * scaleFactor).toInt(), (bmp.height * scaleFactor).toInt(), false)
 
-        val converter: ByteConverterInterface = ZebraByteConverter()
-        val bytes = converter.convert(bmp)
-        val newline = converter.newline()
+        val converter = POSByteConverter()
+        try {
+            val bytes = converter.convert(bmp)
+            val printCommand = converter.POS_Set_PrtAndFeedPaper(0)
+            printer.print(converter.ESC_Init)
+            printer.print(converter.LF)
+            printer.print(bytes)
+            printer.print(printCommand)
+            //val test = converter.newline(6)
+            //printer.print(test)
+        }
+        catch (e: Exception) {
+            Log.e("muhService", e.localizedMessage)
+        }
 
-        printer.print(bytes)
-        printer.print(newline)
 
         doVibrate(100)
     }

@@ -6,7 +6,7 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
 class ZebraByteConverter : ByteConverterInterface {
-    override fun newline(): ByteArray {
+    override fun newline(count: Int): ByteArray {
         val byteList = ArrayList<Byte>()
         val text = "\r\n"
         addStringBytes(byteList, text)
