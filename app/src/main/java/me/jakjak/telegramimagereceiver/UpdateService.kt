@@ -81,16 +81,10 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
 
         val fsBitmap = Utils.floydSteinbergDithering(resizedBitmap)
 
-        val converter = POSByteConverter()
+        val converter: ByteConverterInterface = POSByteConverter()
         try {
             val bytes = converter.convert(fsBitmap)
-            val printCommand = converter.POS_Set_PrtAndFeedPaper(0)
-            printer.print(converter.ESC_Init)
-            printer.print(converter.LF)
             printer.print(bytes)
-            printer.print(printCommand)
-            //val test = converter.newline(6)
-            //printer.print(test)
         }
         catch (e: Exception) {
             Log.e("muhService", e.localizedMessage)

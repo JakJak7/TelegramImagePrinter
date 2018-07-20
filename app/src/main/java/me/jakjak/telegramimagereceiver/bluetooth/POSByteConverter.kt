@@ -6,7 +6,15 @@ import android.graphics.Color
 class POSByteConverter : ByteConverterInterface {
     override fun convert(bitmap: Bitmap): ByteArray {
         val bytes = toBitArray(bitmap)
-        return eachLinePixToCmd(bytes, bitmap.width, 0)
+        val printableBytes = eachLinePixToCmd(bytes, bitmap.width, 0)
+
+        val bytesList = ArrayList<Byte>()
+        bytesList.addAll(ESC_Init.toList())
+        bytesList.addAll(LF.toList())
+        bytesList.addAll(printableBytes.toList())
+        bytesList.addAll(POS_Set_PrtAndFeedPaper(0).toList())
+
+        return bytesList.toByteArray()
     }
 
     private fun toBitArray(bitmap: Bitmap): ByteArray {
@@ -67,12 +75,12 @@ class POSByteConverter : ByteConverterInterface {
     private val ESC: Byte = 0x1B
     private val NL: Byte = 0x0A
 
-    var ESC_Init = byteArrayOf(ESC, '@'.toByte())
-    var LF = byteArrayOf(NL)
-    var ESC_J = byteArrayOf(ESC, 'J'.toByte(), 0x00)
+    private var ESC_Init = byteArrayOf(ESC, '@'.toByte())
+    private var LF = byteArrayOf(NL)
+    private var ESC_J = byteArrayOf(ESC, 'J'.toByte(), 0x00)
 
 
-    fun POS_Set_PrtAndFeedPaper(feed: Int): ByteArray {
+    private fun POS_Set_PrtAndFeedPaper(feed: Int): ByteArray {
         var inputFeed = feed
         if ((inputFeed > 255) or (inputFeed < 0)) {
             inputFeed = 25
