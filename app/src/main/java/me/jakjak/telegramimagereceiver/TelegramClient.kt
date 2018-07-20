@@ -25,17 +25,15 @@ class TelegramClient {
         val client = Client.create({
             Log.d(TAG, "Got update! " + it.javaClass.simpleName)
             if (it is TdApi.UpdateNewMessage) {
-                if (it.message.senderUserId == BuildConfig.botUserId) {
-                    Log.d(TAG, "got bot message!")
-                    handleMessageFromBot(it)
-                }
+                handleMessage(it)
             } else if (it is TdApi.UpdateFile) {
                 if (!it.file.local.isDownloadingActive && it.file.local.isDownloadingCompleted) {
                     onFileDownloadComplete(it)
                 }
             } else if (it is TdApi.UpdateAuthorizationState) {
                 if (it.authorizationState is TdApi.AuthorizationStateWaitPhoneNumber) {
-                    notifyListeners(Event.NeedPhone, null)
+                    //notifyListeners(Event.NeedPhone, null)
+                    authorizeBot()
                 }
                 else if (it.authorizationState is TdApi.AuthorizationStateWaitCode) {
                     notifyListeners(Event.NeedAuth, null)
@@ -49,6 +47,14 @@ class TelegramClient {
         }, {
             Log.e(TAG, "Default exception!")
         })
+
+        private fun authorizeBot() {
+            client.send(TdApi.CheckAuthenticationBotToken(BuildConfig.botToken), {
+                Log.d(TAG, "Set bot token!")
+            }, {
+                Log.e(TAG, "Set bot token failed!")
+            })
+        }
 
         private fun notifyListeners(event: Event, s: String?) {
             for (handler in eventHandlers) {
@@ -74,26 +80,48 @@ class TelegramClient {
             })
         }
 
+        private fun handleMessage(update: TdApi.UpdateNewMessage) {
+            if (update.message.content is TdApi.MessageSticker) {
+                val sticker = (update.message.content as TdApi.MessageSticker).sticker as TdApi.Sticker
+                val file = sticker.sticker
+                handleFile(file)
+            }
+            else if (update.message.content is TdApi.MessagePhoto) {
+                val photo = (update.message.content as TdApi.MessagePhoto).photo as TdApi.Photo
+                for (ps in photo.sizes) {
+                    if (ps.type.equals("x")) {
+                        // full size image!
+                        val file = ps.photo
+                        handleFile(file)
+                        break
+                    }
+                }
+            }
+        }
+
+        private fun handleFile(file: TdApi.File) {
+            if (file.local.isDownloadingCompleted) {
+                val path = file.local.path
+                notifyListeners(Event.ImageReady, path)
+            } else if (file.local.isDownloadingActive) {
+                // do nothing
+            } else {
+                val fileId: Int = file.id
+                pendingImages.add(file.remote.id)
+                client.send(TdApi.DownloadFile(fileId, 32), {
+                    Log.d(TAG, "Sent download file!")
+                })
+            }
+        }
+
         private fun handleMessageFromBot(update: TdApi.UpdateNewMessage) {
             if (update.message.content is TdApi.MessagePhoto) {
                 val photo = (update.message.content as TdApi.MessagePhoto).photo as TdApi.Photo
                 for (ps in photo.sizes) {
                     if (ps.type.equals("x")) {
                         // full size image!
-                        if (ps.photo.local.isDownloadingCompleted) {
-                            val path = ps.photo.local.path
-                            notifyListeners(Event.ImageReady, path)
-                        }
-                        else if (ps.photo.local.isDownloadingActive) {
-                            // do nothing
-                        }
-                        else {
-                            val fileId: Int = ps.photo.id
-                            pendingImages.add(ps.photo.remote.id)
-                            client.send(TdApi.DownloadFile(fileId, 32), {
-                                Log.d(TAG, "Sent download file!")
-                            })
-                        }
+                        val file = ps.photo
+                        handleFile(file)
                         break
                     }
                 }
