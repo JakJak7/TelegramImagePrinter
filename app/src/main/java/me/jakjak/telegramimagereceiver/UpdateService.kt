@@ -15,7 +15,13 @@ import android.util.Log
 import me.jakjak.telegramimagereceiver.bluetooth.*
 import com.askjeffreyliu.floydsteinbergdithering.Utils.floydSteinbergDithering
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
 import com.askjeffreyliu.floydsteinbergdithering.Utils
+import android.opengl.ETC1.getHeight
+import android.opengl.ETC1.getWidth
+
+
 
 
 class UpdateService : Service(), TelegramClient.Companion.EventHandler {
@@ -56,7 +62,12 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
     }
 
     private fun handleImage(path: String) {
-        var bmp = BitmapFactory.decodeFile(path)
+        val image = BitmapFactory.decodeFile(path)
+        val bmp = Bitmap.createBitmap(image.getWidth(), image.getHeight(), image.getConfig())
+        val canvas = Canvas(bmp)
+        canvas.drawColor(Color.WHITE)
+        canvas.drawBitmap(image, 0f, 0f, null)
+
         val scaleFactor: Double
 
         // assumes square print
@@ -66,9 +77,9 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
         else {
             scaleFactor = Constants.printWidth / bmp.height
         }
-        bmp = android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * scaleFactor).toInt(), (bmp.height * scaleFactor).toInt(), false)
+        val resizedBitmap = android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * scaleFactor).toInt(), (bmp.height * scaleFactor).toInt(), false)
 
-        val fsBitmap = Utils.floydSteinbergDithering(bmp)
+        val fsBitmap = Utils.floydSteinbergDithering(resizedBitmap)
 
         val converter = POSByteConverter()
         try {
