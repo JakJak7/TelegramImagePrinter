@@ -13,6 +13,10 @@ import android.os.Vibrator
 import android.support.v4.app.NotificationCompat
 import android.util.Log
 import me.jakjak.telegramimagereceiver.bluetooth.*
+import com.askjeffreyliu.floydsteinbergdithering.Utils.floydSteinbergDithering
+import android.graphics.Bitmap
+import com.askjeffreyliu.floydsteinbergdithering.Utils
+
 
 class UpdateService : Service(), TelegramClient.Companion.EventHandler {
 
@@ -64,9 +68,11 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
         }
         bmp = android.graphics.Bitmap.createScaledBitmap(bmp, (bmp.width * scaleFactor).toInt(), (bmp.height * scaleFactor).toInt(), false)
 
+        val fsBitmap = Utils.floydSteinbergDithering(bmp)
+
         val converter = POSByteConverter()
         try {
-            val bytes = converter.convert(bmp)
+            val bytes = converter.convert(fsBitmap)
             val printCommand = converter.POS_Set_PrtAndFeedPaper(0)
             printer.print(converter.ESC_Init)
             printer.print(converter.LF)

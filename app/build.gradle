@@ -44,6 +44,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-messaging:17.1.0'
 
     implementation 'com.github.Aliaksei-Karaliou:Tdlib-Jitpack-Android:27.1.1'
+    implementation 'com.github.jeffreyliu8:Native-Floyd-Steinberg-Dithering:0.0.5'
 }
 
 apply plugin: 'com.google.gms.google-services'
