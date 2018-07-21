@@ -1,8 +1,14 @@
 apply plugin: 'com.android.application'
 
 apply plugin: 'kotlin-android'
-
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+apply plugin: 'realm-android'
+
+realm {
+    syncEnabled = true;
+}
 
 def appPropertiesFile = rootProject.file("app.properties")
 def appProperties = new Properties()
@@ -19,7 +25,7 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         buildConfigField("int", "appId", appProperties['appId'])
         buildConfigField("String", "appHash", appProperties['appHash'])
-        buildConfigField("int", "botUserId", appProperties['botUserId'])
+        buildConfigField("int", "adminUserId", appProperties['adminUserId'])
         buildConfigField("String", "secretEncryptionKey", appProperties['secretEncryptionKey'])
         buildConfigField("String", "printerMacAddress", appProperties['printerMacAddress'])
         buildConfigField("String", "botToken", appProperties['botToken'])

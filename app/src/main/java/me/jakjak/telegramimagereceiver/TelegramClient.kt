@@ -1,14 +1,20 @@
 package me.jakjak.telegramimagereceiver
 
-import android.support.v4.content.ContextCompat
 import android.util.Log
+import io.realm.Realm
+import io.realm.kotlin.createObject
+import io.realm.kotlin.where
+import me.jakjak.telegramimagereceiver.models.Job
+import me.jakjak.telegramimagereceiver.models.User
 import org.drinkless.td.libcore.telegram.Client
 import org.drinkless.td.libcore.telegram.TdApi
+import java.util.*
 
 class TelegramClient {
 
     companion object {
-        val TAG = "TelegramClient"
+        const val TAG = "TelegramClient"
+        val MAX_JOBS_PER_HOUR = 5
 
         val eventHandlers = ArrayList<EventHandler>()
 
@@ -81,6 +87,20 @@ class TelegramClient {
         }
 
         private fun handleMessage(update: TdApi.UpdateNewMessage) {
+            if (isUserAllowed(update.message.senderUserId)) {
+                sendResponse()
+                return
+            }
+            // this else clause should be moved to after job successfully printed
+            else {
+                val realm = Realm.getDefaultInstance()
+                val user = realm.where<User>().equalTo("userId", update.message.senderUserId).findFirst()!!
+                realm.executeTransaction{
+                    user.jobs.add(Job(user, Date(), ""))
+                }
+                Log.d(TAG, user.jobs.size.toString())
+            }
+
             if (update.message.content is TdApi.MessageSticker) {
                 val sticker = (update.message.content as TdApi.MessageSticker).sticker as TdApi.Sticker
                 val file = sticker.sticker
@@ -97,6 +117,40 @@ class TelegramClient {
                     }
                 }
             }
+        }
+
+        private fun sendResponse() {
+
+        }
+
+        private fun isUserAllowed(senderUserId: Int): Boolean {
+            if (BuildConfig.adminUserId == senderUserId) {
+                return true
+            }
+            val realm = Realm.getDefaultInstance()
+            try {
+                val user = realm.where<User>().equalTo("userId", senderUserId).findFirst()
+                if (user == null) {
+                    realm.executeTransaction {
+                        val newUser = realm.createObject<User>(senderUserId)
+                        newUser.firstName = "john"
+                        newUser.lastName = "doe"
+                    }
+                    return true
+                }
+                val calendar = Calendar.getInstance()
+                val now = calendar.time
+                calendar.add(Calendar.HOUR, -1)
+                val oneHourAgo = calendar.time
+                val results = user.jobs.where().between("timestamp", oneHourAgo, now).findAll()
+                //val results = realm.where<Job>().equalTo("jobs.user", user).between("jobs.timestamp", oneHourAgo, now).findAll()
+                return results.size >= MAX_JOBS_PER_HOUR
+            }
+            catch (e: Exception) {
+                Log.d(TAG, e.message)
+            }
+
+            return false
         }
 
         private fun handleFile(file: TdApi.File) {

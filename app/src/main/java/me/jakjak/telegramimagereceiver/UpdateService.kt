@@ -5,23 +5,20 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
 import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.support.v4.app.NotificationCompat
 import android.util.Log
-import me.jakjak.telegramimagereceiver.bluetooth.*
-import com.askjeffreyliu.floydsteinbergdithering.Utils.floydSteinbergDithering
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
 import com.askjeffreyliu.floydsteinbergdithering.Utils
-import android.opengl.ETC1.getHeight
-import android.opengl.ETC1.getWidth
-
-
+import me.jakjak.telegramimagereceiver.bluetooth.ByteConverterInterface
+import me.jakjak.telegramimagereceiver.bluetooth.POSByteConverter
+import me.jakjak.telegramimagereceiver.bluetooth.Printer
 
 
 class UpdateService : Service(), TelegramClient.Companion.EventHandler {
