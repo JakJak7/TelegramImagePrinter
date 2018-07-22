@@ -110,6 +110,7 @@ class TelegramClient {
                 }
                 else {
                     handleFile(file)
+                    sendResponse(update, "Printing!")
 
                     //TODO this else clause should be moved to after job successfully printed
                     val realm = Realm.getDefaultInstance()
