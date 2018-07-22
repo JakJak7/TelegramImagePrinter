@@ -128,11 +128,7 @@ class TelegramClient {
             try {
                 val user = realm.where<User>().equalTo("userId", senderUserId).findFirst()
                 if (user == null) {
-                    realm.executeTransaction {
-                        val newUser = realm.createObject<User>(senderUserId)
-                        newUser.firstName = "john"
-                        newUser.lastName = "doe"
-                    }
+                    createUser(realm, senderUserId)
                     return true
                 }
                 if (user.isBlocked) {
@@ -154,6 +150,23 @@ class TelegramClient {
             }
 
             return false
+        }
+
+        private fun createUser(realm: Realm, senderUserId: Int) {
+            realm.executeTransaction {
+                realm.createObject<User>(senderUserId)
+            }
+            client.send(TdApi.GetUser(senderUserId), {
+                Log.d(TAG, "get user info!")
+                val remoteUser = it as TdApi.User
+                realm.executeTransaction {
+                    val localUser = realm.where<User>().equalTo("userId", remoteUser.id).findFirst()!!
+                    localUser.firstName = remoteUser.firstName
+                    localUser.lastName = remoteUser.lastName
+                }
+            }, {
+                Log.d(TAG, "get user info failed!")
+            })
         }
 
         private fun handleFile(file: TdApi.File) {
