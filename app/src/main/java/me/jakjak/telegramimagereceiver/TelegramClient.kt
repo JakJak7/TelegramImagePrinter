@@ -124,9 +124,6 @@ class TelegramClient {
         }
 
         private fun isUserAllowed(senderUserId: Int): Boolean {
-            if (BuildConfig.adminUserId == senderUserId) {
-                return true
-            }
             val realm = Realm.getDefaultInstance()
             try {
                 val user = realm.where<User>().equalTo("userId", senderUserId).findFirst()
@@ -136,6 +133,9 @@ class TelegramClient {
                         newUser.firstName = "john"
                         newUser.lastName = "doe"
                     }
+                    return true
+                }
+                if (!user.isLimited) {
                     return true
                 }
                 val calendar = Calendar.getInstance()

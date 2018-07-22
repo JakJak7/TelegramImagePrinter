@@ -47,6 +47,8 @@
             android:name=".ActionReceiver"
             android:enabled="true"
             android:exported="true" />
+
+        <activity android:name=".UserListActivity"></activity>
     </application>
 
 </manifest>

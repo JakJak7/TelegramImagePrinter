@@ -74,6 +74,11 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
         stopButton.isEnabled = false
     }
 
+    fun openUserList(view: View) {
+        val intent = Intent(this, UserListActivity::class.java)
+        startActivity(intent)
+    }
+
     private fun onParametersNeeded() {
         TelegramClient.client.send(TdApi.SetTdlibParameters(TdApi.TdlibParameters(
                 false,

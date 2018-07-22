@@ -6,23 +6,34 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
-    <Button
-        android:id="@+id/startButton"
-        android:onClick="startService"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start service"
-        android:enabled="false"
-        android:layout_centerInParent="true" />
+        android:layout_centerInParent="true">
 
-    <Button
-        android:id="@+id/stopButton"
-        android:onClick="stopService"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Stop service"
-        android:enabled="false"
-        android:layout_centerInParent="true"
-        android:layout_below="@id/startButton"/>
+        <Button
+            android:id="@+id/startButton"
+            android:onClick="startService"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start service"
+            android:enabled="false" />
+
+        <Button
+            android:id="@+id/stopButton"
+            android:onClick="stopService"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop service"
+            android:enabled="false"/>
+
+        <Button
+            android:id="@+id/userListButton"
+            android:onClick="openUserList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Usr list"
+            android:enabled="true"/>
+    </LinearLayout>
 </RelativeLayout>

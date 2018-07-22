@@ -8,6 +8,8 @@ open class User(
         @PrimaryKey var userId: Int = 0,
         var firstName: String = "",
         var lastName: String = "",
-        var jobs : RealmList<Job> = RealmList()
+        var jobs : RealmList<Job> = RealmList(),
+        var isBlocked: Boolean = false,
+        var isLimited: Boolean = true
 ): RealmObject() {
 }
