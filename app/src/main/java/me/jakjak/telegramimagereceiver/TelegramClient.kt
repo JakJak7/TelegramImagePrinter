@@ -14,7 +14,6 @@ class TelegramClient {
 
     companion object {
         const val TAG = "TelegramClient"
-        val MAX_JOBS_PER_HOUR = 5
 
         val eventHandlers = ArrayList<EventHandler>()
 
@@ -88,40 +87,48 @@ class TelegramClient {
         }
 
         private fun handleMessage(update: TdApi.UpdateNewMessage) {
-            if (isUserAllowed(update.message.senderUserId)) {
-                sendResponse()
-                return
-            }
-            //TODO this else clause should be moved to after job successfully printed
-            else {
-                val realm = Realm.getDefaultInstance()
-                val user = realm.where<User>().equalTo("userId", update.message.senderUserId).findFirst()!!
-                realm.executeTransaction{
-                    user.jobs.add(Job(user, Date(), ""))
-                }
-                Log.d(TAG, user.jobs.size.toString())
-            }
-
+            var file: TdApi.File? = null
             if (update.message.content is TdApi.MessageSticker) {
                 val sticker = (update.message.content as TdApi.MessageSticker).sticker as TdApi.Sticker
-                val file = sticker.sticker
-                handleFile(file)
+                file = sticker.sticker
             }
             else if (update.message.content is TdApi.MessagePhoto) {
                 val photo = (update.message.content as TdApi.MessagePhoto).photo as TdApi.Photo
                 for (ps in photo.sizes) {
                     if (ps.type.equals("x")) {
                         // full size image!
-                        val file = ps.photo
-                        handleFile(file)
+                        file = ps.photo
                         break
                     }
                 }
             }
+
+            if (file != null) {
+                if (!isUserAllowed(update.message.senderUserId)) {
+                    sendResponse(update, "You've sent too many prints, try again in an hour")
+                    return
+                }
+                else {
+                    handleFile(file)
+
+                    //TODO this else clause should be moved to after job successfully printed
+                    val realm = Realm.getDefaultInstance()
+                    val user = realm.where<User>().equalTo("userId", update.message.senderUserId).findFirst()!!
+                    realm.executeTransaction{
+                        user.jobs.add(Job(user, Date(), file.remote.id))
+                    }
+                    Log.d(TAG, user.jobs.size.toString())
+                }
+            }
         }
 
-        private fun sendResponse() {
+        private fun sendResponse(update: TdApi.UpdateNewMessage, message: String) {
+            val inputMessageText = TdApi.InputMessageText(TdApi.FormattedText(message, null), true, true)
+            client.send(TdApi.SendMessage(update.message.chatId, update.message.replyToMessageId, false, true, null, inputMessageText), {
 
+            }, {
+
+            })
         }
 
         private fun isUserAllowed(senderUserId: Int): Boolean {
@@ -144,7 +151,7 @@ class TelegramClient {
                 val oneHourAgo = calendar.time
                 val results = user.jobs.where().between("timestamp", oneHourAgo, now).findAll()
                 //val results = realm.where<Job>().equalTo("jobs.user", user).between("jobs.timestamp", oneHourAgo, now).findAll()
-                return results.size >= MAX_JOBS_PER_HOUR
+                return results.size < Constants.MAX_JOBS_PER_HOUR
             }
             catch (e: Exception) {
                 Log.d(TAG, e.message)
