@@ -29,7 +29,7 @@ class TelegramClient {
 
         val client = Client.create({
             Log.d(TAG, "Got update! " + it.javaClass.simpleName)
-            if (it is TdApi.UpdateNewMessage) {
+            if (it is TdApi.UpdateNewMessage && it.message.senderUserId != BuildConfig.botUserId) {
                 handleMessage(it)
             } else if (it is TdApi.UpdateFile) {
                 if (!it.file.local.isDownloadingActive && it.file.local.isDownloadingCompleted) {
@@ -87,6 +87,11 @@ class TelegramClient {
         }
 
         private fun handleMessage(update: TdApi.UpdateNewMessage) {
+            if (!UpdateService.isAlive) {
+                sendResponse(update, "Printer offline")
+                return
+            }
+
             var file: TdApi.File? = null
             if (update.message.content is TdApi.MessageSticker) {
                 val sticker = (update.message.content as TdApi.MessageSticker).sticker as TdApi.Sticker

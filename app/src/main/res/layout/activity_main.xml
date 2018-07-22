@@ -33,7 +33,7 @@
             android:onClick="openUserList"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Usr list"
+            android:text="User list"
             android:enabled="true"/>
     </LinearLayout>
 </RelativeLayout>
