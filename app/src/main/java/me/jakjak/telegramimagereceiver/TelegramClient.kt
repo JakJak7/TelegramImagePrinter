@@ -138,8 +138,8 @@ class TelegramClient {
         }
 
         private fun isUserAllowed(senderUserId: Int): Boolean {
-            val realm = Realm.getDefaultInstance()
             try {
+                val realm = Realm.getDefaultInstance()
                 val user = realm.where<User>().equalTo("userId", senderUserId).findFirst()
                 if (user == null) {
                     createUser(realm, senderUserId)
@@ -156,7 +156,7 @@ class TelegramClient {
                 calendar.add(Calendar.HOUR, -1)
                 val oneHourAgo = calendar.time
                 val results = user.jobs.where().between("timestamp", oneHourAgo, now).findAll()
-                //val results = realm.where<Job>().equalTo("jobs.user", user).between("jobs.timestamp", oneHourAgo, now).findAll()
+
                 return results.size < Constants.MAX_JOBS_PER_HOUR
             }
             catch (e: Exception) {

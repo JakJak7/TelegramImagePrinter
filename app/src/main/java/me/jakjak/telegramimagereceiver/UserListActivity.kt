@@ -2,7 +2,6 @@ package me.jakjak.telegramimagereceiver
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
 import io.realm.Realm
 import io.realm.kotlin.where
 import kotlinx.android.synthetic.main.activity_user_list.*
@@ -16,36 +15,27 @@ class UserListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_user_list)
 
-        try {
-            val realm = Realm.getDefaultInstance()
-            val users = realm.where<User>().findAll()
+        val realm = Realm.getDefaultInstance()
+        val users = realm.where<User>().findAll()
 
-            userListView.setOnItemClickListener{ _, _, position, _ ->
-                val user = users[position]!!
-                realm.executeTransaction{
-                    user.isLimited = !user.isLimited
-                }
-                runOnUiThread{
-                    adapter.notifyDataSetChanged()
-                }
+        userListView.setOnItemClickListener{ _, _, position, _ ->
+            val user = users[position]!!
+            realm.executeTransaction{
+                user.isLimited = !user.isLimited
             }
+            adapter.notifyDataSetChanged()
+        }
 
-            userListView.setOnItemLongClickListener{ _, _, position, _ ->
-                val user = users[position]!!
-                realm.executeTransaction{
-                    user.isBlocked = !user.isBlocked
-                }
-                runOnUiThread{
-                    adapter.notifyDataSetChanged()
-                }
-                return@setOnItemLongClickListener true
+        userListView.setOnItemLongClickListener{ _, _, position, _ ->
+            val user = users[position]!!
+            realm.executeTransaction{
+                user.isBlocked = !user.isBlocked
             }
+            adapter.notifyDataSetChanged()
+            return@setOnItemLongClickListener true
+        }
 
-            adapter = MyAdapter(this, R.layout.user_list_item, users)
-            userListView.adapter = adapter
-        }
-        catch (e: Exception) {
-            Log.d("TAG", e.message)
-        }
+        adapter = MyAdapter(this, R.layout.user_list_item, users)
+        userListView.adapter = adapter
     }
 }
