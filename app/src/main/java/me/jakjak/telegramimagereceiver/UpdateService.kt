@@ -87,7 +87,6 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
             Log.e("muhService", e.localizedMessage)
         }
 
-
         doVibrate(100)
     }
 
@@ -118,12 +117,10 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
         return notification
     }
 
-    val notificationActionCode = 1338
-
     private fun createAction(): NotificationCompat.Action {
         val intentAction = Intent(this, ActionReceiver::class.java)
         intentAction.putExtra(ActionReceiver.ACTION, ActionReceiver.ACTION_STOP)
-        val pendingIntent: PendingIntent = PendingIntent.getBroadcast(this, notificationActionCode, intentAction, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent: PendingIntent = PendingIntent.getBroadcast(this, Constants.notificationActionCode, intentAction, PendingIntent.FLAG_UPDATE_CURRENT)
         val action: NotificationCompat.Action = NotificationCompat.Action.Builder(android.R.drawable.arrow_down_float, "stop", pendingIntent).build()
         return action
     }

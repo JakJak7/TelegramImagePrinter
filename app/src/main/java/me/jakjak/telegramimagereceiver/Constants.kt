@@ -9,5 +9,6 @@ class Constants {
         val channelId = "my_channel_01"
 
         val foregroundServiceId = 1337
+        val notificationActionCode = 1338
     }
 }

@@ -68,6 +68,7 @@ class TelegramClient {
             }
         }
 
+        //TODO store pending in db instead of memory
         private fun onFileDownloadComplete(it: TdApi.UpdateFile) {
             val remoteId = it.file.remote.id
             if (pendingImages.contains(remoteId)) {
@@ -91,7 +92,7 @@ class TelegramClient {
                 sendResponse()
                 return
             }
-            // this else clause should be moved to after job successfully printed
+            //TODO this else clause should be moved to after job successfully printed
             else {
                 val realm = Realm.getDefaultInstance()
                 val user = realm.where<User>().equalTo("userId", update.message.senderUserId).findFirst()!!
@@ -181,22 +182,6 @@ class TelegramClient {
                 client.send(TdApi.DownloadFile(fileId, 32), {
                     Log.d(TAG, "Sent download file!")
                 })
-            }
-        }
-
-        private fun handleMessageFromBot(update: TdApi.UpdateNewMessage) {
-            if (update.message.content is TdApi.MessagePhoto) {
-                val photo = (update.message.content as TdApi.MessagePhoto).photo as TdApi.Photo
-                for (ps in photo.sizes) {
-                    if (ps.type.equals("x")) {
-                        // full size image!
-                        val file = ps.photo
-                        handleFile(file)
-                        break
-                    }
-                }
-            } else if (update.message.content is TdApi.MessageSticker) {
-                // ??
             }
         }
 
