@@ -135,6 +135,9 @@ class TelegramClient {
                     }
                     return true
                 }
+                if (user.isBlocked) {
+                    return false
+                }
                 if (!user.isLimited) {
                     return true
                 }

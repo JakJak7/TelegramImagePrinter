@@ -19,17 +19,28 @@ class UserListActivity : AppCompatActivity() {
         try {
             val realm = Realm.getDefaultInstance()
             val users = realm.where<User>().findAll()
-/*
-            userListView.seton setOnItemClickListener{_, _, position, _ ->
+
+            userListView.setOnItemClickListener{ _, _, position, _ ->
                 val user = users[position]!!
                 realm.executeTransaction{
                     user.isLimited = !user.isLimited
                 }
-                runOnUiThread({
+                runOnUiThread{
                     adapter.notifyDataSetChanged()
-                })
+                }
             }
-*/
+
+            userListView.setOnItemLongClickListener{ _, _, position, _ ->
+                val user = users[position]!!
+                realm.executeTransaction{
+                    user.isBlocked = !user.isBlocked
+                }
+                runOnUiThread{
+                    adapter.notifyDataSetChanged()
+                }
+                return@setOnItemLongClickListener true
+            }
+
             adapter = MyAdapter(this, R.layout.user_list_item, users)
             userListView.adapter = adapter
         }
