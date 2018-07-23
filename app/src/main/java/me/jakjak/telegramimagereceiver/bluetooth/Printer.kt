@@ -11,27 +11,34 @@ class Printer(val context: Context, val MAC: String) {
 
     lateinit var socket: BluetoothSocket
 
-    public fun openConnection(): Boolean {
+    public fun openConnection(): BluetoothSocket? {
         val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         if (!manager.adapter.isEnabled) {
             manager.adapter.enable()
+            throw IllegalAccessException("Bluetooth not enabled! Enabling...")
         }
         val device = manager.adapter.getRemoteDevice(MAC)
 
-        /*if (device.bondState != BOND_BONDED) {
-            return false
-        }*/
+        if (device.bondState != BOND_BONDED) {
+            throw IllegalAccessException("Not paired with printer!")
+        }
 
         socket = device.createRfcommSocketToServiceRecord(uuid)
         socket.connect()
 
-        return true
+        return socket
     }
 
     public fun print(bytes: ByteArray) {
         val outputStream = socket.outputStream
         outputStream.write(bytes)
         outputStream.flush()
+    }
+
+    fun read() {
+        val inputStream = socket.inputStream
+        val buffer = ByteArray(0xFF)
+        inputStream.read(buffer)
     }
 
     fun closeConnection() {

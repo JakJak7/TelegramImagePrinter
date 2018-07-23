@@ -36,13 +36,6 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
         }
 
         createNotificationChannel()
-
-        if (!UpdateService.isAlive) {
-            startButton.isEnabled = true
-        }
-        else {
-            stopButton.isEnabled = true
-        }
     }
 
     override fun onStart() {
@@ -54,6 +47,18 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
     override fun onStop() {
         TelegramClient.unbindHandler(this)
         super.onStop()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!UpdateService.isAlive) {
+            startButton.isEnabled = true
+            stopButton.isEnabled = false
+        }
+        else {
+            startButton.isEnabled = false
+            stopButton.isEnabled = true
+        }
     }
 
     fun startService(view: View) {

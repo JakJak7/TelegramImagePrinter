@@ -9,16 +9,15 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import android.os.Build
-import android.os.IBinder
-import android.os.VibrationEffect
-import android.os.Vibrator
+import android.os.*
 import android.support.v4.app.NotificationCompat
 import android.util.Log
+import android.widget.Toast
 import com.askjeffreyliu.floydsteinbergdithering.Utils
 import me.jakjak.telegramimagereceiver.bluetooth.ByteConverterInterface
 import me.jakjak.telegramimagereceiver.bluetooth.POSByteConverter
 import me.jakjak.telegramimagereceiver.bluetooth.Printer
+import java.io.IOException
 
 
 class UpdateService : Service(), TelegramClient.Companion.EventHandler {
@@ -34,21 +33,54 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        TelegramClient.bindHandler(this)
-        isAlive = true
-
         val notification = createNotification(Constants.channelId)
         startForeground(Constants.foregroundServiceId, notification)
 
-        printer.openConnection()
+        try {
+            var connection = printer.openConnection()
 
-        return super.onStartCommand(intent, flags, startId)
+            TelegramClient.bindHandler(this)
+
+            isAlive = true
+            startReadLoop()
+            return START_STICKY
+            //return super.onStartCommand(intent, flags, startId)
+        }
+        catch (e: IllegalAccessException) {
+            Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
+            stopSelf()
+            return START_STICKY
+        }
+        catch (e: IOException) {
+            Toast.makeText(this, "Could not connect to printer", Toast.LENGTH_SHORT).show()
+            stopSelf()
+            return START_STICKY
+        }
+    }
+
+    private fun startReadLoop() {
+        val handlerThread = HandlerThread("readThread")
+        handlerThread.start()
+        val handler = Handler(handlerThread.looper)
+
+        handler.post {
+            while (isAlive) {
+                try {
+                    printer.read()
+                }
+                catch (e: Exception) {
+                    handleBluetoothError(e)
+                }
+            }
+        }
     }
 
     override fun onDestroy() {
-        isAlive = false
-        printer.closeConnection()
-        TelegramClient.unbindHandler(this)
+        if (isAlive) {
+            isAlive = false
+            printer.closeConnection()
+            TelegramClient.unbindHandler(this)
+        }
         super.onDestroy()
     }
 
@@ -82,12 +114,17 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
         try {
             val bytes = converter.convert(fsBitmap)
             printer.print(bytes)
+            doVibrate(100)
         }
         catch (e: Exception) {
-            Log.e("muhService", e.localizedMessage)
+            handleBluetoothError(e)
         }
+    }
 
-        doVibrate(100)
+    private fun handleBluetoothError(e: Exception) {
+        Log.e("muhService", e.message)
+        doVibrate(500)
+        stopSelf()
     }
 
     private fun doVibrate(vibtime: Long) {
