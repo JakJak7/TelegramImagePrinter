@@ -51,14 +51,20 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
 
     override fun onResume() {
         super.onResume()
-        if (!UpdateService.isAlive) {
-            startButton.isEnabled = true
-            stopButton.isEnabled = false
+        updateButtons(UpdateService.isAlive)
+        UpdateService.onStopCallback = {
+            updateButtons(UpdateService.isAlive)
         }
-        else {
-            startButton.isEnabled = false
-            stopButton.isEnabled = true
-        }
+    }
+
+    private fun updateButtons(alive: Boolean) {
+        startButton.isEnabled = !alive
+        stopButton.isEnabled = alive
+    }
+
+    override fun onPause() {
+        super.onPause()
+        UpdateService.onStopCallback = null
     }
 
     fun startService(view: View) {

@@ -26,6 +26,7 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
 
     companion object {
         var isAlive = false
+        var onStopCallback: (() -> Unit)? = null
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -78,6 +79,7 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
     override fun onDestroy() {
         if (isAlive) {
             isAlive = false
+            onStopCallback?.invoke()
             printer.closeConnection()
             TelegramClient.unbindHandler(this)
         }
