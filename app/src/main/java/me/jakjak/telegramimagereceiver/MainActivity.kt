@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.View
-import com.google.firebase.iid.FirebaseInstanceId
 import kotlinx.android.synthetic.main.activity_main.*
 import org.drinkless.td.libcore.telegram.TdApi
 import java.util.*
@@ -28,12 +27,6 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener { instanceIdResult ->
-            val deviceToken = instanceIdResult.token
-            TelegramClient.setToken(deviceToken)
-            Log.d("Firebase", "token " + deviceToken)
-        }
 
         createNotificationChannel()
     }
