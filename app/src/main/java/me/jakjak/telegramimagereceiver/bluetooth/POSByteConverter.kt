@@ -5,8 +5,18 @@ import android.graphics.Color
 
 class POSByteConverter : ByteConverterInterface {
     override fun convert(bitmap: Bitmap): ByteArray {
-        val bytes = toBitArray(bitmap)
-        val printableBytes = eachLinePixToCmd(bytes, bitmap.width, 0)
+
+        var printWidth = 8 - (bitmap.width % 8)
+
+        if (printWidth == 8) {
+            printWidth = bitmap.width
+        }
+        else {
+            printWidth += bitmap.width
+        }
+
+        val bytes = toBitArray(bitmap, printWidth)
+        val printableBytes = eachLinePixToCmd(bytes, printWidth, 0)
 
         val bytesList = ArrayList<Byte>()
         bytesList.addAll(ESC_Init.toList())
@@ -17,14 +27,19 @@ class POSByteConverter : ByteConverterInterface {
         return bytesList.toByteArray()
     }
 
-    private fun toBitArray(bitmap: Bitmap): ByteArray {
+    private fun toBitArray(bitmap: Bitmap, loopWidth: Int): ByteArray {
         val bytes = ArrayList<Byte>()
         for (y in 0 until bitmap.height) {
-            for (x in 0 until bitmap.width) {
+            for (x in 0 until loopWidth) {
                 var intensity: Int
 
-                val pixel = bitmap.getPixel(x, y)
-                intensity = 255 - ((Color.red(pixel) + Color.green(pixel) + Color.blue(pixel)) / 3)
+                if (x < bitmap.width) {
+                    val pixel = bitmap.getPixel(x, y)
+                    intensity = 255 - ((Color.red(pixel) + Color.green(pixel) + Color.blue(pixel)) / 3)
+                }
+                else {
+                    intensity = 0
+                }
 
                 if (intensity > 128) {
                     bytes.add(1)
