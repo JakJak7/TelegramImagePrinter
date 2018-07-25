@@ -3,6 +3,7 @@ package me.jakjak.telegramimagereceiver
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
+import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -11,7 +12,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.os.*
 import android.support.v4.app.NotificationCompat
-import android.util.Log
 import android.widget.Toast
 import com.askjeffreyliu.floydsteinbergdithering.Utils
 import me.jakjak.telegramimagereceiver.bluetooth.ByteConverterInterface
@@ -25,7 +25,8 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
     val printer: Printer = Printer(this, BuildConfig.printerMacAddress)
 
     companion object {
-        var isAlive = false
+        var isRunning = false
+        var isConnected = false
         var onStopCallback: (() -> Unit)? = null
     }
 
@@ -36,27 +37,26 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         val notification = createNotification(Constants.channelId)
         startForeground(Constants.foregroundServiceId, notification)
+        isRunning = true
 
         try {
-            var connection = printer.openConnection()
+            printer.openConnection()
+            isConnected = true
 
             TelegramClient.bindHandler(this)
 
-            isAlive = true
             startReadLoop()
-            return START_STICKY
-            //return super.onStartCommand(intent, flags, startId)
+        } catch (e: IllegalAccessException) {
+            onConnectionLost(e.message!!)
+        } catch (e: IOException) {
+            onConnectionLost("Could not connect to printer")
         }
-        catch (e: IllegalAccessException) {
-            Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
-            stopSelf()
-            return START_STICKY
-        }
-        catch (e: IOException) {
-            Toast.makeText(this, "Could not connect to printer", Toast.LENGTH_SHORT).show()
-            stopSelf()
-            return START_STICKY
-        }
+        return START_STICKY
+    }
+
+    private fun onConnectionLost(errorMessage: String) {
+        isConnected = false
+        Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
     }
 
     private fun startReadLoop() {
@@ -65,20 +65,28 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
         val handler = Handler(handlerThread.looper)
 
         handler.post {
-            while (isAlive) {
+            while (isRunning) {
                 try {
-                    printer.read()
+                    if (isConnected) {
+                        printer.read()
+                        isConnected = true
+                    }
+                    else {
+                        printer.openConnection()
+                        isConnected = true
+                    }
                 }
                 catch (e: Exception) {
-                    handleBluetoothError(e)
+                    onConnectionLost(e.message!!)
+                    Thread.sleep(5000)
                 }
             }
         }
     }
 
     override fun onDestroy() {
-        if (isAlive) {
-            isAlive = false
+        if (isRunning) {
+            isRunning = false
             onStopCallback?.invoke()
             printer.closeConnection()
             TelegramClient.unbindHandler(this)
@@ -119,14 +127,8 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
             doVibrate(100)
         }
         catch (e: Exception) {
-            handleBluetoothError(e)
+            onConnectionLost(e.message!!)
         }
-    }
-
-    private fun handleBluetoothError(e: Exception) {
-        Log.e("muhService", e.message)
-        doVibrate(500)
-        stopSelf()
     }
 
     private fun doVibrate(vibtime: Long) {

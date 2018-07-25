@@ -44,9 +44,9 @@ class MainActivity : AppCompatActivity(), TelegramClient.Companion.EventHandler 
 
     override fun onResume() {
         super.onResume()
-        updateButtons(UpdateService.isAlive)
+        updateButtons(UpdateService.isRunning)
         UpdateService.onStopCallback = {
-            updateButtons(UpdateService.isAlive)
+            updateButtons(UpdateService.isRunning)
         }
     }
 

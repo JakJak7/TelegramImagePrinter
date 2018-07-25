@@ -87,7 +87,11 @@ class TelegramClient {
         }
 
         private fun handleMessage(update: TdApi.UpdateNewMessage) {
-            if (!UpdateService.isAlive) {
+            if (!UpdateService.isRunning) {
+                return
+            }
+            else if (UpdateService.isRunning && !UpdateService.isConnected) {
+                sendResponse(update, "Printer offline")
                 return
             }
 
