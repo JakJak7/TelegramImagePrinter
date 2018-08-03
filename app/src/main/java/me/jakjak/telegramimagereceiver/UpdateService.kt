@@ -3,7 +3,6 @@ package me.jakjak.telegramimagereceiver
 import android.app.Notification
 import android.app.PendingIntent
 import android.app.Service
-import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -17,10 +16,11 @@ import com.askjeffreyliu.floydsteinbergdithering.Utils
 import me.jakjak.telegramimagereceiver.bluetooth.ByteConverterInterface
 import me.jakjak.telegramimagereceiver.bluetooth.POSByteConverter
 import me.jakjak.telegramimagereceiver.bluetooth.Printer
+import me.jakjak.telegramimagereceiver.models.Job
 import java.io.IOException
 
 
-class UpdateService : Service(), TelegramClient.Companion.EventHandler {
+class UpdateService : Service() {
 
     val printer: Printer = Printer(this, BuildConfig.printerMacAddress)
 
@@ -43,7 +43,14 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
             printer.openConnection()
             isConnected = true
 
-            TelegramClient.bindHandler(this)
+            //TelegramClient.bindHandler(this)
+            TelegramClient.jobHandler = {
+                val nameString = it.user?.firstName + " " + it.user?.lastName + ":\n"
+                printText(nameString)
+                if (it.imagePath != null) {
+                    handleImage(it.imagePath!!)
+                }
+            }
 
             startReadLoop()
         } catch (e: IllegalAccessException) {
@@ -52,6 +59,16 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
             onConnectionLost("Could not connect to printer")
         }
         return START_STICKY
+    }
+
+    private fun printText(nameString: String) {
+        val bytes = nameString.toByteArray()
+        try {
+            printer.print(bytes)
+        }
+        catch (e: Exception) {
+            onConnectionLost(e.message!!)
+        }
     }
 
     private fun onConnectionLost(errorMessage: String) {
@@ -88,20 +105,15 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
             isRunning = false
             onStopCallback?.invoke()
             printer.closeConnection()
-            TelegramClient.unbindHandler(this)
+            //TelegramClient.unbindHandler(this)
+            TelegramClient.jobHandler = null
         }
         super.onDestroy()
     }
 
-    override fun handleEvent(e: TelegramClient.Companion.Event, s: String?) {
-        if (e == TelegramClient.Companion.Event.ImageReady) {
-            handleImage(s.orEmpty())
-        }
-    }
-
     private fun handleImage(path: String) {
         val image = BitmapFactory.decodeFile(path)
-        val bmp = Bitmap.createBitmap(image.getWidth(), image.getHeight(), image.getConfig())
+        val bmp = Bitmap.createBitmap(image.width, image.height, image.config)
         val canvas = Canvas(bmp)
         canvas.drawColor(Color.WHITE)
         canvas.drawBitmap(image, 0f, 0f, null)

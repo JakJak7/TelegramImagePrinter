@@ -16,6 +16,7 @@ class TelegramClient {
         const val TAG = "TelegramClient"
 
         val eventHandlers = ArrayList<EventHandler>()
+        var jobHandler: ((Job) -> Unit)? = null
 
         fun bindHandler(e: EventHandler){
             eventHandlers.add(e)
@@ -74,7 +75,14 @@ class TelegramClient {
                 pendingImages.remove(remoteId)
 
                 val path = it.file.local.path
-                notifyListeners(Event.ImageReady, path)
+                val realm = Realm.getDefaultInstance()
+                val job = realm.where<Job>().equalTo("imageId", remoteId).isNull("imagePath").sort("timestamp").findFirst()!!
+
+                realm.executeTransaction{
+                    job.imagePath = path
+                }
+
+                jobHandler?.invoke(job)
             }
         }
 
@@ -110,6 +118,9 @@ class TelegramClient {
                     }
                 }
             }
+            else if (update.message.content is TdApi.MessageText) {
+                //TODO
+            }
 
             if (file != null) {
                 if (!isUserAllowed(update.message.senderUserId)) {
@@ -117,16 +128,16 @@ class TelegramClient {
                     return
                 }
                 else {
-                    handleFile(file)
-                    sendResponse(update, "Printing!")
-
-                    //TODO this else clause should be moved to after job successfully printed
                     val realm = Realm.getDefaultInstance()
                     val user = realm.where<User>().equalTo("userId", update.message.senderUserId).findFirst()!!
+                    val job = Job(user, Date(), file.remote.id)
+
+                    handleFile(job, file)
+                    sendResponse(update, "Printing!")
+
                     realm.executeTransaction{
-                        user.jobs.add(Job(user, Date(), file.remote.id))
+                        user.jobs.add(job)
                     }
-                    Log.d(TAG, user.jobs.size.toString())
                 }
             }
         }
@@ -186,10 +197,12 @@ class TelegramClient {
             })
         }
 
-        private fun handleFile(file: TdApi.File) {
+        private fun handleFile(job: Job, file: TdApi.File) {
             if (file.local.isDownloadingCompleted) {
                 val path = file.local.path
-                notifyListeners(Event.ImageReady, path)
+                job.imagePath = path
+                jobHandler?.invoke(job)
+                //notifyListeners(Event.ImageReady, path)
             } else if (file.local.isDownloadingActive) {
                 // do nothing
             } else {
@@ -208,8 +221,7 @@ class TelegramClient {
         enum class Event {
             NeedPhone,
             NeedAuth,
-            LoggedIn,
-            ImageReady
+            LoggedIn
         }
     }
 }
