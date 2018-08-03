@@ -160,6 +160,7 @@ class TelegramClient {
         private fun isUserAllowed(senderUserId: Int): Boolean {
             try {
                 val realm = Realm.getDefaultInstance()
+                realm.refresh()
                 val user = realm.where<User>().equalTo("userId", senderUserId).findFirst()
                 if (user == null) {
                     createUser(realm, senderUserId)
