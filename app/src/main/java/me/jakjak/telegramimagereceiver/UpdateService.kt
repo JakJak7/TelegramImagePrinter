@@ -16,7 +16,6 @@ import com.askjeffreyliu.floydsteinbergdithering.Utils
 import me.jakjak.telegramimagereceiver.bluetooth.ByteConverterInterface
 import me.jakjak.telegramimagereceiver.bluetooth.POSByteConverter
 import me.jakjak.telegramimagereceiver.bluetooth.Printer
-import me.jakjak.telegramimagereceiver.models.Job
 import java.io.IOException
 
 
@@ -43,10 +42,10 @@ class UpdateService : Service() {
             printer.openConnection()
             isConnected = true
 
-            //TelegramClient.bindHandler(this)
             TelegramClient.jobHandler = {
                 val nameString = it.user?.firstName + " " + it.user?.lastName + ":\n"
                 printText(nameString)
+                printText(it.text + "\n")
                 if (it.imagePath != null) {
                     handleImage(it.imagePath!!)
                 }
@@ -61,8 +60,10 @@ class UpdateService : Service() {
         return START_STICKY
     }
 
-    private fun printText(nameString: String) {
-        val bytes = nameString.toByteArray()
+    private fun printText(text: String?) {
+        if (text == null) return
+
+        val bytes = text.toByteArray()
         try {
             printer.print(bytes)
         }
@@ -105,7 +106,6 @@ class UpdateService : Service() {
             isRunning = false
             onStopCallback?.invoke()
             printer.closeConnection()
-            //TelegramClient.unbindHandler(this)
             TelegramClient.jobHandler = null
         }
         super.onDestroy()

@@ -103,42 +103,48 @@ class TelegramClient {
                 return
             }
 
+            if (!isUserAllowed(update.message.senderUserId)) {
+                sendResponse(update, "You've sent too many prints, try again in an hour")
+                return
+            }
+
+            val realm = Realm.getDefaultInstance()
+            val user = realm.where<User>().equalTo("userId", update.message.senderUserId).findFirst()!!
+            val job = Job(user, Date())
+
             var file: TdApi.File? = null
             if (update.message.content is TdApi.MessageSticker) {
                 val sticker = (update.message.content as TdApi.MessageSticker).sticker as TdApi.Sticker
                 file = sticker.sticker
+                job.imageId = file.remote.id
             }
             else if (update.message.content is TdApi.MessagePhoto) {
+                job.text = (update.message.content as TdApi.MessagePhoto).caption?.text
                 val photo = (update.message.content as TdApi.MessagePhoto).photo as TdApi.Photo
                 for (ps in photo.sizes) {
                     if (ps.type.equals("x")) {
                         // full size image!
                         file = ps.photo
+                        job.imageId = file.remote.id
                         break
                     }
                 }
             }
             else if (update.message.content is TdApi.MessageText) {
-                //TODO
+                val message = update.message.content as TdApi.MessageText
+                job.text = message.text.text
+            }
+
+            sendResponse(update, "Printing!")
+            realm.executeTransaction{
+                user.jobs.add(job)
             }
 
             if (file != null) {
-                if (!isUserAllowed(update.message.senderUserId)) {
-                    sendResponse(update, "You've sent too many prints, try again in an hour")
-                    return
-                }
-                else {
-                    val realm = Realm.getDefaultInstance()
-                    val user = realm.where<User>().equalTo("userId", update.message.senderUserId).findFirst()!!
-                    val job = Job(user, Date(), file.remote.id)
-
-                    handleFile(job, file)
-                    sendResponse(update, "Printing!")
-
-                    realm.executeTransaction{
-                        user.jobs.add(job)
-                    }
-                }
+                handleFile(job, file)
+            }
+            else {
+                jobHandler?.invoke(job)
             }
         }
 
