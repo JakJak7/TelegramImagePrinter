@@ -45,7 +45,9 @@ class UpdateService : Service() {
             TelegramClient.jobHandler = {
                 val nameString = it.user?.firstName + " " + it.user?.lastName + ":\n"
                 printText(nameString)
-                printText(it.text + "\n")
+                if (it.text != null) {
+                    printText(it.text + "\n")
+                }
                 if (it.imagePath != null) {
                     handleImage(it.imagePath!!)
                 }
@@ -60,9 +62,7 @@ class UpdateService : Service() {
         return START_STICKY
     }
 
-    private fun printText(text: String?) {
-        if (text == null) return
-
+    private fun printText(text: String) {
         val bytes = text.toByteArray()
         try {
             printer.print(bytes)
