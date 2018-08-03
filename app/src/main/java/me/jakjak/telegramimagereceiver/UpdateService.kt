@@ -134,7 +134,9 @@ class UpdateService : Service() {
         val converter: ByteConverterInterface = POSByteConverter()
         try {
             val bytes = converter.convert(fsBitmap)
+            val newlines = converter.newline(1)
             printer.print(bytes)
+            printer.print(newlines)
             doVibrate(100)
         }
         catch (e: Exception) {
