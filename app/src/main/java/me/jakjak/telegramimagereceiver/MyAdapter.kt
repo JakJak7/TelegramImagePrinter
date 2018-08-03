@@ -31,7 +31,7 @@ class MyAdapter(context: Context, val resource: Int, val data: List<User>): Base
         }
 
         val user = data[position]
-        holder.nameView.text = user.firstName + " " + user.firstName
+        holder.nameView.text = "${user.firstName} ${user.lastName}"
 
         val status: String
         if (user.isBlocked) {

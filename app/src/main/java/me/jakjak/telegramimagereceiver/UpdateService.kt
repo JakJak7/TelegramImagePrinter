@@ -69,12 +69,11 @@ class UpdateService : Service(), TelegramClient.Companion.EventHandler {
                 try {
                     if (isConnected) {
                         printer.read()
-                        isConnected = true
                     }
                     else {
                         printer.openConnection()
-                        isConnected = true
                     }
+                    isConnected = true
                 }
                 catch (e: Exception) {
                     onConnectionLost(e.message!!)
